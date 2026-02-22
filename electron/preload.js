@@ -1,15 +1,15 @@
-const { contextBridge, ipcRenderer } = require('electron');
+const { ipcRenderer } = require('electron');
+const { contextBridge } = require('electron/renderer')
 
-console.log("PRELOAD OK");
-
-const path = require('path');
-const storage = require(path.join(__dirname, 'api', 'storage.js'));
-
-console.log("PRELOAD 2 OK");
-
-contextBridge.exposeInMainWorld('api', {
-  storage: {
-    guardar: (data) => ipcRenderer.invoke('guardar-datos', data),
-    leer: () => ipcRenderer.invoke('leer-datos')
-  }
-});
+contextBridge.exposeInMainWorld('data', {
+  saveInstances: (data) => window.localStorage.setItem('mc-launcher-instances', JSON.stringify(data)),
+  loadInstances: () => {
+    const data = window.localStorage.getItem('mc-launcher-instances');
+    return data ? JSON.parse(data) : null;
+  },
+  saveName: (name) => window.localStorage.setItem('mc-launcher-name', name),
+  loadName: () => window.localStorage.getItem('mc-launcher-name') || "Steve",
+  getInfo: () => {
+    return ipcRenderer.invoke('get-info');
+  },
+})

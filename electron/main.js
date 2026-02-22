@@ -1,25 +1,17 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
+const { preload } = require('react-dom');
 
-console.log("Preload path:", path.join(__dirname, 'preload.js'));
+ipcMain.handle('get-info', () => {
+  return {
+    preloadPath: path.join(__dirname, 'preload.js'),
+    userDataPath: app.getPath('userData')
+  }
+});
 
 app.commandLine.appendSwitch('disable-gpu'); // desactiva GPU
 app.commandLine.appendSwitch('disable-software-rasterizer'); // desactiva rasterizador de software
 app.commandLine.appendSwitch('enable-features', 'UseOzonePlatform'); // opcional en Linux
-
-function getDataPath() {
-  return path.join(app.getPath('userData'), 'datos.json');
-}
-
-ipcMain.handle('guardar-datos', async (event, data) => {
-    fs.writeFileSync(getDataPath(), JSON.stringify(data));
-});
-
-ipcMain.handle('leer-datos', async () => {
-    const dataPath = getDataPath();
-    if (!fs.existsSync(dataPath)) return null;
-    return JSON.parse(fs.readFileSync(dataPath));
-});
 
 function createWindow() {
     const win = new BrowserWindow({
