@@ -1,37 +1,60 @@
 import React from 'react';
+
 import Instancia from './components/Instancia.jsx';
 import Header from './components/Header.jsx';
 import NuevaInstanciaBoton from './components/NuevaInstanciaBoton.jsx';
 import NuevaInstancia from './components/NuevaInstancia.jsx';
 
+import { loadInstances, saveInstances } from './logic/util.js';
+
 export default function App() {
   
-  const [instancias, setInstancias] = React.useState([
-    { nombre: "Instancia 1", version: "Versión 1.0" },
-    { nombre: "Instancia 2", version: "Versión 1.1" },
-    { nombre: "Instancia 3", version: "Versión 1.2" },
-  ]);
-
+  // Estado para las instancias y el formulario de nueva instancia
+  const [instancias, setInstancias] = React.useState([]);
   const [showNuevaInstancia, setShowNuevaInstancia] = React.useState(false);
+
+  // Cargar instancias al iniciar la aplicación
+  React.useEffect(() => {
+    const _loadInstances = async () => {
+      const storedInstances = await loadInstances();
+      console.log("storedInstances:", storedInstances);
+      if (storedInstances) setInstancias(storedInstances);
+    };
+    _loadInstances();
+  }, []);
+
+  // Guardar instancias cada vez que cambian
+  const _saveInstances = async (instances) => {
+    await saveInstances(instances);
+  };
+
+  const addInstancia = (name, version) => {
+    const instancia = { name: name, version: version };
+    const newInstancias = [...instancias, instancia];
+    setInstancias(newInstancias);
+    _saveInstances(newInstancias);
+    setShowNuevaInstancia(false);
+  }
+
+  const removeInstancia = (index) => {
+
+    const name = instancias[index].nombre;
+    let accept = window.confirm(`¿Estás seguro de eliminar ${name}?`);
+
+    if (index == -1 || !accept) return;
+
+    const newInstancias = instancias.filter((_, i) => i !== index);
+    setInstancias(newInstancias);
+    _saveInstances(newInstancias);
+  }
+
 
   const onOpenFolder = (instancia) => {
     console.log("Instancia seleccionada:", instancia);
   }
 
-  const onDelete = (instancia) => {
-    const index = instancias.findIndex(i => i === instancia);
-    if (index !== -1 && window.confirm(`¿Estás seguro de eliminar ${instancia.nombre}?`)) {
-      setInstancias(instancias.filter((_, i) => i !== index));
-    }
-  }
-
   const onPlay = (instancia) => {
     console.log("Instancia seleccionada para jugar:", instancia);
-  }
-
-  const onAddInstancia = () => {
-    const nuevaInstancia = { nombre: "Nueva Instancia", version: "Versión 1.0" };
-    setInstancias([...instancias, nuevaInstancia]);
   }
   
   return (
@@ -45,9 +68,10 @@ export default function App() {
             {/* Instancias disponibles: */}
             {instancias.map((instancia, index) => (
               <Instancia
+                key={index}
                 instancia={instancia}
                 onOpenFolder={() => onOpenFolder(instancia)}
-                onDelete={() => onDelete(instancia)}
+                onDelete={() => removeInstancia(index)}
                 onPlay={() => onPlay(instancia)}
               />
             ))}
@@ -55,13 +79,15 @@ export default function App() {
         )}
         {/* Boton de agregar nueva instancia */}
         
-        <NuevaInstanciaBoton onAddInstancia={() => setShowNuevaInstancia(true)} />
-        <NuevaInstancia getVersiones={() => Promise.resolve(["1.0", "1.1", "1.2"])} 
-          onSubmit={(instancia) => {
-            setInstancias([...instancias, instancia]);
-            setShowNuevaInstancia(false);
-          }} />
-      
+        {showNuevaInstancia ? (
+            <NuevaInstancia
+              onSubmit={(name, version) => addInstancia(name, version)} 
+              onCancel={() => setShowNuevaInstancia(false)}
+            />  
+          ) :  
+            <NuevaInstanciaBoton onClick={() => setShowNuevaInstancia(true)} />
+          }
+
       </div>
     </div>
   );

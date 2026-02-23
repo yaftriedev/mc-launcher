@@ -13,3 +13,7 @@ contextBridge.exposeInMainWorld('data', {
   saveData: (data) => ipcRenderer.invoke('save-data', { data }), 
   loadData: () => ipcRenderer.invoke('load-data')
 })
+
+contextBridge.exposeInMainWorld('versions', {
+  getVersionsRelease: () => ipcRenderer.invoke('get-versions-release')
+})

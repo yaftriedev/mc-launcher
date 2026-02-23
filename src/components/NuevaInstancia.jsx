@@ -1,24 +1,23 @@
 import React from "react";
+import { getVersionsRelease, versionToText } from '../logic/util.js';
 
-export default function FormContainer({ getVersiones, onSubmit, onCancel }) {
-  const [nombre, setNombre] = React.useState("");
-  const [version, setVersion] = React.useState("");
+export default function FormContainer({ onSubmit, onCancel }) {
+  const [name, setName] = React.useState("");
+  const [version, setVersion] = React.useState({id: "", type: ""});
   const [versiones, setVersiones] = React.useState([]);
 
   React.useEffect(() => {
     const cargarVersiones = async () => {
-      const data = await getVersiones();
+      const data = await getVersionsRelease();
       setVersiones(data);
     };
 
     cargarVersiones();
-  }, [getVersiones]);
+  }, [getVersionsRelease]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (onSubmit) {
-      onSubmit({ nombre, version });
-    }
+    if (onSubmit) onSubmit(name, version);
   };
 
   return (
@@ -32,8 +31,8 @@ export default function FormContainer({ getVersiones, onSubmit, onCancel }) {
           <input
             type="text"
             className="form-control"
-            value={nombre}
-            onChange={(e) => setNombre(e.target.value)}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
             required
           />
         </div>
@@ -42,14 +41,16 @@ export default function FormContainer({ getVersiones, onSubmit, onCancel }) {
           <label className="form-label">Versión</label>
           <select
             className="form-select"
-            value={version}
-            onChange={(e) => setVersion(e.target.value)}
+            value={JSON.stringify(version)}
+            onChange={(e) => setVersion(JSON.parse(e.target.value))}
             required
           >
             <option value="">Selecciona una versión</option>
-            {versiones.map((v, index) => (
-              <option key={index} value={v}>
-                {v}
+            {versiones.map(version => (
+              <option 
+                key={version.id}
+                value={JSON.stringify({ id: version.id, type: version.type })}>
+                  {versionToText(version)}
               </option>
             ))}
           </select>
