@@ -2,12 +2,16 @@ const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const { preload } = require('react-dom');
 
-ipcMain.handle('get-info', () => {
-  return {
-    preloadPath: path.join(__dirname, 'preload.js'),
-    userDataPath: app.getPath('userData')
-  }
-});
+// Importar funciones de las APIs
+const { initStorage, storageHandler } = require('./api/storage');
+const { getInfo } = require('./api/info');
+
+// Inicializar las APIs
+initStorage()
+  .then(result => console.log(result.message))
+  .catch(error => console.error("Error initializing storage:", error));
+storageHandler();
+getInfo();
 
 app.commandLine.appendSwitch('disable-gpu'); // desactiva GPU
 app.commandLine.appendSwitch('disable-software-rasterizer'); // desactiva rasterizador de software
@@ -30,11 +34,11 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
-    // Flag para software rendering
-    app.commandLine.appendSwitch('disable-gpu');
-    app.commandLine.appendSwitch('disable-software-rasterizer');
+  // Flag para software rendering
+  app.commandLine.appendSwitch('disable-gpu');
+  app.commandLine.appendSwitch('disable-software-rasterizer');
 
-    createWindow();
+  createWindow();
 });
 
 app.on('window-all-closed', () => {
