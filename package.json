@@ -4,14 +4,14 @@
   "description": "",
   "main": "electron/main.js",
   "keywords": [],
-  "author": "",
+  "author": "yaftrie",
   "license": "ISC",
   "scripts": {
     "start-react": "webpack serve --open",
     "start-electron": "wait-on http://localhost:8080 && electron .",
     "start": "concurrently \"npm run start-react\" \"npm run start-electron\"",
     "dist": "electron-builder",
-    "electron-dev": "concurrently \"BROWSER=none npm start\" \"wait-on http://localhost:8080 && electron .\""
+    "electron": "electron ."
   },
   "devDependencies": {
     "@babel/core": "^7.29.0",

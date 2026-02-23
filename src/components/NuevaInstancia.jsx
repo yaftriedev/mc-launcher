@@ -1,6 +1,6 @@
 import React from "react";
 
-export default function FormContainer({ getVersiones, onSubmit }) {
+export default function FormContainer({ getVersiones, onSubmit, onCancel }) {
   const [nombre, setNombre] = React.useState("");
   const [version, setVersion] = React.useState("");
   const [versiones, setVersiones] = React.useState([]);
@@ -22,7 +22,7 @@ export default function FormContainer({ getVersiones, onSubmit }) {
   };
 
   return (
-    <div className="container mt-4">
+    <div className="container mt-4 col-md-6">
       <form
         className="p-4 border rounded bg-light"
         onSubmit={handleSubmit}
@@ -57,7 +57,7 @@ export default function FormContainer({ getVersiones, onSubmit }) {
 
         <div className="d-flex justify-content-end mt-3">
           <button type="submit" className="btn btn-primary">Crear</button>
-          <button className="btn btn-danger ms-2" onClick={() => { setNombre(""); setVersion(""); }}>Limpiar</button>
+          <button className="btn btn-danger ms-2" onClick={() => onCancel()}>Cancelar</button>
         </div>
 
       </form>

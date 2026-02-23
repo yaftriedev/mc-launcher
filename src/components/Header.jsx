@@ -1,5 +1,5 @@
 import React from "react";
-import { loadName, saveName } from "../logic/data";
+import { loadName, saveName, getMSGInfo } from "../logic/data";
 
 export default function Header() {
   const [name, setName] = React.useState("");
@@ -29,6 +29,9 @@ export default function Header() {
         </div>
 
         <div className="d-flex flex-sm-row align-items-center gap-2 mt-2 mt-md-0">
+          <button className="btn btn-sm btn-primary" onClick={async () => alert(await getMSGInfo())}>
+            <i className="bi bi-info-circle-fill fs-6"></i>
+          </button>
           <input
             type="text"
             className="form-control w-100 w-sm-auto"
