@@ -1,5 +1,5 @@
 import React from "react";
-import { loadName, saveName, getMSGInfo } from "../logic/util";
+import { loadName, saveName, getMSGInfo } from "../util";
 
 export default function Header() {
   const [name, setName] = React.useState("");

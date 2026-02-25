@@ -1,7 +1,7 @@
 import React from "react";
-import { getVersionsRelease, versionToText } from '../logic/util.js';
+import { getVersionsRelease, versionToText } from '../util.js';
 
-export default function FormContainer({ onSubmit, onCancel }) {
+export default function CreateInstanceForm({ onSubmit, onCancel }) {
   const [name, setName] = React.useState("");
   const [version, setVersion] = React.useState({id: "", type: ""});
   const [versiones, setVersiones] = React.useState([]);

@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function NuevaInstanciaBoton({onClick}) {
+export default function CreateInstanceBtn({onClick}) {
   return (
     <div className="container d-flex justify-content-end mt-4">
       <button className="btn btn-primary" onClick={onClick}>

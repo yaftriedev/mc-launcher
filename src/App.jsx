@@ -1,11 +1,11 @@
 import React from 'react';
 
-import Instancia from './components/Instancia.jsx';
+import Instance from './components/Instance.jsx';
 import Header from './components/Header.jsx';
-import NuevaInstanciaBoton from './components/NuevaInstanciaBoton.jsx';
-import NuevaInstancia from './components/NuevaInstancia.jsx';
+import CreateInstanceBtn from './components/CreateInstanceBtn.jsx';
+import CreateInstanceForm from './components/CreateInstanceForm.jsx';
 
-import { loadInstances, saveInstances } from './logic/util.js';
+import { loadInstances, saveInstances } from './util.js';
 
 export default function App() {
   
@@ -52,10 +52,6 @@ export default function App() {
   const onOpenFolder = (instancia) => {
     console.log("Instancia seleccionada:", instancia);
   }
-
-  const onPlay = (instancia) => {
-    console.log("Instancia seleccionada para jugar:", instancia);
-  }
   
   return (
     <div>
@@ -67,12 +63,10 @@ export default function App() {
           <ul className="list-group mt-4 d-flex justify-content-center">
             {/* Instancias disponibles: */}
             {instancias.map((instancia, index) => (
-              <Instancia
+              <Instance
                 key={index}
                 instancia={instancia}
-                onOpenFolder={() => onOpenFolder(instancia)}
                 onDelete={() => removeInstancia(index)}
-                onPlay={() => onPlay(instancia)}
               />
             ))}
           </ul>
@@ -80,12 +74,12 @@ export default function App() {
         {/* Boton de agregar nueva instancia */}
         
         {showNuevaInstancia ? (
-            <NuevaInstancia
+            <CreateInstanceForm
               onSubmit={(name, version) => addInstancia(name, version)} 
               onCancel={() => setShowNuevaInstancia(false)}
             />  
           ) :  
-            <NuevaInstanciaBoton onClick={() => setShowNuevaInstancia(true)} />
+            <CreateInstanceBtn onClick={() => setShowNuevaInstancia(true)} />
           }
 
       </div>

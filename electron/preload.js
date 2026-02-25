@@ -1,8 +1,9 @@
 const { ipcRenderer } = require('electron');
 const { contextBridge } = require('electron/renderer')
 
-contextBridge.exposeInMainWorld('data', {
+contextBridge.exposeInMainWorld('api', {
   getInfo: () => ipcRenderer.invoke('get-info'),
+  openFolder: (name) => ipcRenderer.invoke('open-folder', { name }),
 
   saveInstances: (data) => ipcRenderer.invoke('save-instances', { instances: data }),
   loadInstances: () => ipcRenderer.invoke('load-instances'),
@@ -11,9 +12,10 @@ contextBridge.exposeInMainWorld('data', {
   loadName: () => ipcRenderer.invoke('load-name'),
   
   saveData: (data) => ipcRenderer.invoke('save-data', { data }), 
-  loadData: () => ipcRenderer.invoke('load-data')
-})
+  loadData: () => ipcRenderer.invoke('load-data'),
 
-contextBridge.exposeInMainWorld('versions', {
-  getVersionsRelease: () => ipcRenderer.invoke('get-versions-release')
+  getVersionsRelease: () => ipcRenderer.invoke('get-versions-release'),
+
+  launchInstance: (options) => ipcRenderer.invoke('launch-minecraft', { options })
+
 })

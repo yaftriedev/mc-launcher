@@ -1,5 +1,7 @@
-const { app, ipcMain } = require('electron');
+const { app, ipcMain, shell } = require('electron');
+const { mcInstancesPath } = require('../util/const');
 const path = require('path');
+const fs = require('fs');
 
 function getInfo() {
   ipcMain.handle('get-info', () => {
@@ -11,6 +13,18 @@ function getInfo() {
       repo: 'yaftriede/mc-launcher',
     }
   });
+
+  ipcMain.handle('open-folder', (event, {name}) => {
+    const folderPath = path.join(mcInstancesPath, name);
+    
+    if (!fs.existsSync(folderPath)) {
+      shell.openPath(mcInstancesPath);
+      return;
+    }
+
+    shell.openPath(folderPath);
+  });
+
 }
 
 module.exports = { getInfo };
