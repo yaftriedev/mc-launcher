@@ -25,6 +25,8 @@ function getInfo() {
     shell.openPath(folderPath);
   });
 
+  ipcMain.handle('send-progress', (event, { value }) => event.sender.send('progress-update', value));
+
 }
 
 module.exports = { getInfo };

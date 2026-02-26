@@ -4,6 +4,7 @@ import Instance from './components/Instance.jsx';
 import Header from './components/Header.jsx';
 import CreateInstanceBtn from './components/CreateInstanceBtn.jsx';
 import CreateInstanceForm from './components/CreateInstanceForm.jsx';
+import ProgressBar from './components/ProgresiveBar.jsx';
 
 import { loadInstances, saveInstances } from './util.js';
 
@@ -47,16 +48,13 @@ export default function App() {
     setInstancias(newInstancias);
     _saveInstances(newInstancias);
   }
-
-
-  const onOpenFolder = (instancia) => {
-    console.log("Instancia seleccionada:", instancia);
-  }
   
   return (
     <div>
       <Header />
       <div className="container">
+        <ProgressBar />
+        
         {instancias.length === 0 ? (
           <div className="alert alert-info mt-4">No hay versiones disponibles.</div>
         ) : (

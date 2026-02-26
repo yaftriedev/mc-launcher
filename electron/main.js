@@ -15,11 +15,12 @@ initStorage()
 storageHandler();
 getInfo();
 VersionsHandler();
-LaunchMCHandler();
+
+let win = null;
 
 // Crear la ventana principal de la aplicación
 function createWindow() {
-  const win = new BrowserWindow({
+  win = new BrowserWindow({
     width: 1000,
     height: 700,
     webPreferences: {
@@ -32,6 +33,7 @@ function createWindow() {
 
   // Cargar tu React desde webpack-dev-server
   win.loadURL('http://localhost:8080');
+
 }
 
 app.whenReady().then(() => {
@@ -41,7 +43,8 @@ app.whenReady().then(() => {
   app.commandLine.appendSwitch('enable-features', 'UseOzonePlatform'); // opcional en Linux
 
   fetchVersions()
-    .then(() => createWindow());
+    .then(() => { createWindow(); LaunchMCHandler(win);});
+  
 });
 
 app.on('window-all-closed', () => {

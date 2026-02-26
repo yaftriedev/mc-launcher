@@ -1,18 +1,24 @@
-const { ipcMain } = require('electron');
-const { LauncherPath, mcInstancesPath } = require('./../util/const');
+const { ipcMain, ipcRenderer } = require('electron');
+const { LauncherPath, mcInstancesPath, LogPath } = require('./../util/const');
 const { fork } = require('child_process');
 const path = require('path');
 
-async function LaunchMCHandler() {
+async function LaunchMCHandler(mainWindow) {
   ipcMain.handle('launch-minecraft', async (event, { options }) => {
     try {
 
       mc_path = path.join( mcInstancesPath, options.name);
       
-      const child = fork(LauncherPath, [ mc_path, options.version, options.username], {
-        stdio: 'ignore',
+      const child = fork(LauncherPath, [ LogPath, mc_path, options.version, options.username], {
+        stdio: ['ignore', 'ignore', 'ignore', 'ipc'],
         detached: true,
         env: process.env
+      });
+
+      child.on('message', (msg) => {
+        if (msg.type === 'progress') {
+          mainWindow.webContents.send('progress-update', msg.percent);
+        }
       });
 
       child.unref();   

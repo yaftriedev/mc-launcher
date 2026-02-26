@@ -16,6 +16,9 @@ contextBridge.exposeInMainWorld('api', {
 
   getVersionsRelease: () => ipcRenderer.invoke('get-versions-release'),
 
-  launchInstance: (options) => ipcRenderer.invoke('launch-minecraft', { options })
+  launchInstance: (options) => ipcRenderer.invoke('launch-minecraft', { options }),
+
+  onProgress: (callback) => ipcRenderer.on('progress-update', (_, value) => callback(value)),
+  sendProgress: (value) => ipcRenderer.invoke('send-progress', { value })
 
 })
