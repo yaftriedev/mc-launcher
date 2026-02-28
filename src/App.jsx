@@ -2,17 +2,15 @@ import React from 'react';
 
 import Instance from './components/Instance.jsx';
 import Header from './components/Header.jsx';
-import CreateInstanceBtn from './components/CreateInstanceBtn.jsx';
-import CreateInstanceForm from './components/CreateInstanceForm.jsx';
+import CreateInstance from './components/CreateInstance.jsx';
 import ProgressBar from './components/ProgresiveBar.jsx';
 
-import { loadInstances, saveInstances } from './util.js';
+import { loadInstances, createInstance, saveInstances } from './util.js';
 
 export default function App() {
   
   // Estado para las instancias y el formulario de nueva instancia
   const [instancias, setInstancias] = React.useState([]);
-  const [showNuevaInstancia, setShowNuevaInstancia] = React.useState(false);
 
   // Cargar instancias al iniciar la aplicación
   React.useEffect(() => {
@@ -25,28 +23,25 @@ export default function App() {
   }, []);
 
   // Guardar instancias cada vez que cambian
-  const _saveInstances = async (instances) => {
-    await saveInstances(instances);
-  };
+  const addInstancia = async (name, version) => {
+    const newInstance = createInstance(name, version);
+    if (newInstance === null) return;
 
-  const addInstancia = (name, version) => {
-    const instancia = { name: name, version: version };
-    const newInstancias = [...instancias, instancia];
+    const newInstancias = [...instancias, newInstance];
     setInstancias(newInstancias);
-    _saveInstances(newInstancias);
-    setShowNuevaInstancia(false);
+    await saveInstances(newInstancias);
+    
   }
 
-  const removeInstancia = (index) => {
-
-    const name = instancias[index].nombre;
+  const removeInstancia = async (index) => {
+    const name = instancias[index].name;
     let accept = window.confirm(`¿Estás seguro de eliminar ${name}?`);
 
     if (index == -1 || !accept) return;
 
     const newInstancias = instancias.filter((_, i) => i !== index);
     setInstancias(newInstancias);
-    _saveInstances(newInstancias);
+    await saveInstances(newInstancias);
   }
   
   return (
@@ -71,14 +66,7 @@ export default function App() {
         )}
         {/* Boton de agregar nueva instancia */}
         
-        {showNuevaInstancia ? (
-            <CreateInstanceForm
-              onSubmit={(name, version) => addInstancia(name, version)} 
-              onCancel={() => setShowNuevaInstancia(false)}
-            />  
-          ) :  
-            <CreateInstanceBtn onClick={() => setShowNuevaInstancia(true)} />
-          }
+        <CreateInstance onSubmit={(name) => addInstancia(name)} />
 
       </div>
     </div>
