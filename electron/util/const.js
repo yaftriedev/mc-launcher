@@ -8,6 +8,4 @@ const mcInstancesPath = path.join(appPath, 'instances');
 const LauncherPath = path.join(appPath, 'launcher', 'launch.js');
 const LogPath = path.join(appPath, 'app.log');
 
-const versions_url = "https://launchermeta.mojang.com/mc/game/version_manifest.json";
-
-module.exports = { appPath, dataFilePath, versions_url, mcInstancesPath, LauncherPath, LogPath };
+module.exports = { appPath, dataFilePath, mcInstancesPath, LauncherPath, LogPath };

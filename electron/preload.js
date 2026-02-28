@@ -15,10 +15,14 @@ contextBridge.exposeInMainWorld('api', {
   loadData: () => ipcRenderer.invoke('load-data'),
 
   getVersionsRelease: () => ipcRenderer.invoke('get-versions-release'),
+  getVersionsAll: () => ipcRenderer.invoke('get-versions-all'),
 
   launchInstance: (options) => ipcRenderer.invoke('launch-minecraft', { options }),
 
   onProgress: (callback) => ipcRenderer.on('progress-update', (_, value) => callback(value)),
-  sendProgress: (value) => ipcRenderer.invoke('send-progress', { value })
+  sendProgress: (value) => ipcRenderer.invoke('send-progress', { value }),
+
+  onMCClosed: (callback) => ipcRenderer.on('mc-closed', () => callback()),
+  sendMCClosed: () => ipcRenderer.invoke('send-mc-closed')
 
 })
