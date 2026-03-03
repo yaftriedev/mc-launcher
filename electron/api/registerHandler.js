@@ -1,7 +1,9 @@
-const { ipcMain } = require('electron');
+const { ipcMain, app } = require('electron');
+const path = require('path');
 
-const { saveName, loadName, saveInstances, loadInstances } = require('./storage');
-const { getVersions, LaunchMinecraft } = require('./minecraft');
+const { saveName, loadName, saveInstances, loadInstances, initStorage } = require('./storage');
+const { LaunchMinecraft } = require('./minecraft');
+const { fetchReleaseVersions, fetchForgeVersions, fetchVersionsAll } = require('./versionsMC');
 
 const { save, load, openFolder } = require('./../util/file');
 const { dataFilePath } = require('./../util/const');
@@ -46,31 +48,13 @@ function registerHandler(win) {
   ipcMain.handle('open-folder', (event, {name}) => openFolder(name));
 
   // Get versions
-  ipcMain.handle('get-versions-all', async (event) => getVersions());
+  ipcMain.handle('get-versions-all', async (event) => fetchVersionsAll());
+  ipcMain.handle('get-versions-release', async (event) => fetchReleaseVersions());
+  ipcMain.handle('get-versions-forge', async (event) => fetchForgeVersions());
 
   // Launch Minecraft
   ipcMain.handle('launch-minecraft', async (event, { options }) => LaunchMinecraft(win, options));
 
 }
 
-async function initStorage() {
-  const initialData = {
-    name: "",
-    instances: []
-  };
-
-  try {
-    await fs.access(dataFilePath);
-    return { success: true, message: "Already exists" };
-  } catch {
-    await fs.writeFile(
-      dataFilePath,
-      JSON.stringify(initialData, null, 2),
-      'utf-8'
-    );
-    return { success: true, message: "Created" };
-  }
-}
-
-
-module.exports = { initStorage, registerHandler };
+module.exports = { initStorage, registerHandler, initStorage };

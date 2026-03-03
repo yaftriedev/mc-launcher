@@ -8,4 +8,7 @@ const mcInstancesPath = path.join(appPath, 'instances');
 const LauncherPath = path.join(appPath, 'launcher', 'launch.js');
 const LogPath = path.join(appPath, 'app.log');
 
-module.exports = { appPath, dataFilePath, mcInstancesPath, LauncherPath, LogPath };
+release_versions_url = "https://launchermeta.mojang.com/mc/game/version_manifest.json";
+forge_promotions_url = "https://files.minecraftforge.net/net/minecraftforge/forge/promotions_slim.json";
+
+module.exports = { appPath, dataFilePath, mcInstancesPath, LauncherPath, LogPath, release_versions_url, forge_promotions_url };

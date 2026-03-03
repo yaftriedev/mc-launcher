@@ -3,6 +3,25 @@ const fs = require('fs').promises;
 const { dataFilePath } = require('./../util/const');
 const { save, load } = require('./../util/file');
 
+async function initStorage() {
+  const initialData = {
+    name: "",
+    instances: []
+  };
+
+  try {
+    await fs.access(dataFilePath);
+    return { success: true, message: "Already exists" };
+  } catch {
+    await fs.writeFile(
+      dataFilePath,
+      JSON.stringify(initialData, null, 2),
+      'utf-8'
+    );
+    return { success: true, message: "Created" };
+  }
+}
+
 async function saveName(name) {
   try {
     const currentData = await load(dataFilePath);
@@ -41,4 +60,4 @@ async function loadInstances() {
   return currentData?.data?.instances || {};
 }
 
-module.exports = { saveName, loadName, saveInstances, loadInstances };
+module.exports = { saveName, loadName, saveInstances, loadInstances, initStorage };

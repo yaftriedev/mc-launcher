@@ -1,6 +1,7 @@
 const fs = require('fs').promises;
 const path = require('path');
 const { shell } = require('electron');
+const { mcInstancesPath } = require('./const');
 
 async function save(data, filePath) {
   try {
@@ -20,15 +21,15 @@ async function load(filePath) {
   }
 }
 
-function openFolder(name) {
+async function openFolder(name) {
   const folderPath = path.join(mcInstancesPath, name);
   
-  if (!fs.existsSync(folderPath)) {
+  try {
+    await fs.access(folderPath);
+    shell.openPath(folderPath);
+  } catch (error) {
     shell.openPath(mcInstancesPath);
-    return;
   }
-
-  shell.openPath(folderPath);
 }
 
 module.exports = { save, load, openFolder };

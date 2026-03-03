@@ -15,6 +15,7 @@ contextBridge.exposeInMainWorld('api', {
   loadData: () => ipcRenderer.invoke('load-data'),
 
   getVersionsRelease: () => ipcRenderer.invoke('get-versions-release'),
+  getVersionsForge: () => ipcRenderer.invoke('get-versions-forge'),
   getVersionsAll: () => ipcRenderer.invoke('get-versions-all'),
 
   launchInstance: (options) => ipcRenderer.invoke('launch-minecraft', { options }),

@@ -3,18 +3,6 @@ const { getVersionList } = require("@xmcl/installer");
 const { fork } = require('child_process');
 const path = require('path');
 
-async function getVersions() {
-  const list = await getVersionList();
-  return list.versions
-    .filter(v => v.type === "release")  
-    .map(v => ({
-      id: v.id,
-      type: v.type,
-      url: v.url,
-      releaseTime: v.releaseTime
-    }));
-}
-
 function LaunchMinecraft(mainWindow, options) {
   try {
 
@@ -47,4 +35,4 @@ function LaunchMinecraft(mainWindow, options) {
   }
 }
 
-module.exports = { getVersions, LaunchMinecraft };
+module.exports = { LaunchMinecraft };
