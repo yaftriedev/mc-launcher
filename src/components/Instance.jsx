@@ -56,7 +56,7 @@ export default function Instance({ instancia, onDelete }) {
         </div>
 
         {/* Columna 2: Botones */}
-        <div className="col-auto d-flex align-items-center">
+        <div className="col-6 d-flex align-items-center">
           <select
             className="form-select"
             disabled={disabled}
@@ -65,7 +65,9 @@ export default function Instance({ instancia, onDelete }) {
             required
           >
             <option value="">Selecciona una versión</option>
-            {versiones.map(version => (
+            {versiones
+              .sort((a, b) => a.id.localeCompare(b.id))
+              .map(version => (
               <option 
                 key={version.id}
                 value={JSON.stringify({ id: version.id, type: version.type })}>

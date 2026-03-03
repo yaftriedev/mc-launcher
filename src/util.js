@@ -40,7 +40,7 @@ export const LaunchInstance = async (instancia) => {
   window.api.launchInstance(options);
 }
 
-export const createInstance = (name) => {
+export const createInstance = async (name) => {
   if (!name) {
     alert("Por favor, introduce un nombre.");
     return null;
@@ -58,6 +58,12 @@ export const createInstance = (name) => {
 
   if (name.trim() === "") {
     alert("El nombre no puede estar vacío.");
+    return null;
+  }
+
+  const instances = await loadInstances();
+  if (instances.find(instance => instance.name === name)) {
+    alert("Ya existe una instancia con ese nombre.");
     return null;
   }
 
