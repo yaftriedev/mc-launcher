@@ -29,9 +29,8 @@
   },
   "dependencies": {
     "@xmcl/core": "^2.15.1",
+    "@xmcl/forge-site-parser": "^2.0.9",
     "@xmcl/installer": "^6.1.2",
-    "minecraft-java-core": "^4.2.6",
-    "minecraft-launcher-core": "^3.1.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   }
