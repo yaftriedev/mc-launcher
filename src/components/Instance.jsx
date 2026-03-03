@@ -8,6 +8,7 @@ export default function Instance({ instancia, onDelete }) {
   
   const [version, setVersion] = React.useState({id: "", type: ""});
   const [versiones, setVersiones] = React.useState([]);
+  const [disabled, setDisabled] = React.useState(false);
   
   React.useEffect(() => {
     const cargarVersiones = async () => {
@@ -21,24 +22,13 @@ export default function Instance({ instancia, onDelete }) {
 
   }, [getVersionsRelease]);
 
-  const btnSetActive = (active) => {
-    const liElement = liRef.current;
-    if (!liElement) return;
-
-    liElement.querySelectorAll('button').forEach((btn) => {
-      if (btn.classList.contains('btn-danger') || btn.classList.contains('btn-success')) {
-        btn.disabled = active;
-      }
-    });
-  };
-
   const startGame = async () => {
     console.log(`Iniciando instancia ${instancia.name} con versión ${version.id} (${version.type})`);
     LaunchInstance({
       name: instancia.name,
       version: version
     });
-    btnSetActive(true);
+    setDisabled(true);
     
     const instances = await loadInstances();
 
@@ -55,7 +45,7 @@ export default function Instance({ instancia, onDelete }) {
 
   }
 
-  window.api.onMCClosed((event, data) => btnSetActive(false));
+  window.api.onMCClosed((event, data) => setDisabled(false));
   
   return (
     <li ref={liRef} className="list-group-item w-auto col-10 mt-4 p-3 rounded-3 shadow-sm bg-light">
@@ -69,6 +59,7 @@ export default function Instance({ instancia, onDelete }) {
         <div className="col-auto d-flex align-items-center">
           <select
             className="form-select"
+            disabled={disabled}
             value={JSON.stringify(version)}
             onChange={(e) => setVersion(JSON.parse(e.target.value))}
             required
@@ -85,10 +76,10 @@ export default function Instance({ instancia, onDelete }) {
           <button className="btn btn-sm btn-primary ms-2" onClick={() => window.api.openFolder(instancia.name)}>
             <i className="bi bi-folder-fill fs-6"></i>
           </button>
-          <button className="btn btn-sm btn-danger ms-2" onClick={onDelete}>
+          <button className="btn btn-sm btn-danger ms-2" onClick={onDelete} disabled={disabled}>
             <i className="bi bi-trash-fill fs-6"></i>
           </button>
-          <button className="btn btn-sm btn-success ms-2" onClick={startGame}>
+          <button className="btn btn-sm btn-success ms-2" onClick={startGame} disabled={disabled}>
             <i className="bi bi-play-circle-fill fs-6"></i>
           </button>
         </div>
