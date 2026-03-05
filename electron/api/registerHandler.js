@@ -53,7 +53,7 @@ function registerHandler(win) {
   ipcMain.handle('get-versions-forge', async (event) => fetchForgeVersions());
 
   // Launch Minecraft
-  ipcMain.handle('launch-minecraft', async (event, { options }) => LaunchMinecraft(win, options));
+  ipcMain.handle('launch-minecraft', async (event, { options }) => await LaunchMinecraft(win, options));
 
 }
 

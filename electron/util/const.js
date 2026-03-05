@@ -5,7 +5,7 @@ const appPath = process.cwd(); // en desarrollo, la raíz del proyecto
 
 const dataFilePath = path.join(appPath, 'data.json');
 const mcInstancesPath = path.join(appPath, 'instances');
-const LauncherPath = path.join(appPath, 'launcher', 'launch.js');
+const LauncherPath = path.join(appPath, 'launcher', 'run.js');
 const LogPath = path.join(appPath, 'app.log');
 
 release_versions_url = "https://launchermeta.mojang.com/mc/game/version_manifest.json";

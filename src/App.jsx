@@ -24,7 +24,7 @@ export default function App() {
 
   // Guardar instancias cada vez que cambian
   const addInstancia = async (name, version) => {
-    const newInstance = createInstance(name, version);
+    const newInstance = await createInstance(name, version);
     if (newInstance === null) return;
 
     const newInstancias = [...instancias, newInstance];

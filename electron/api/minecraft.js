@@ -1,29 +1,23 @@
 const { LauncherPath, mcInstancesPath, LogPath } = require('./../util/const');
-const { getVersionList } = require("@xmcl/installer");
 const { fork } = require('child_process');
 const path = require('path');
 
-function LaunchMinecraft(mainWindow, options) {
+async function LaunchMinecraft(mainWindow, options) {
   try {
 
-    mc_path = path.join(mcInstancesPath, options.name);
-    
+    const mc_path = path.join(mcInstancesPath, options.name);
+
     const child = fork(LauncherPath, [ LogPath, mc_path, options.version, options.username], {
-      stdio: ['ignore', 'ignore', 'ignore', 'ipc'],
+      // stdio: ['ignore', 'ignore', 'ignore', 'ipc'], // for test
+      stdio: ['ignore','inherit','inherit','ipc'], // for production
       detached: true,
-      env: process.env
+      env: process.env,
+      cwd: path.dirname(LauncherPath)
     });
 
-    child.on('message', (msg) => {
-      if (msg.type === 'progress') {
-        mainWindow.webContents.send('progress-update', msg.percent);
-      }
-    });
-
-    child.on('message', (msg) => {
-      if (msg.type === 'mc-closed') {
-        mainWindow.webContents.send('mc-closed');
-      }
+    child.on('exit', (code) => {
+      mainWindow.webContents.send('mc-closed');
+      console.log('mc-closed', code);
     });
 
     child.unref();   

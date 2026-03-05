@@ -14,8 +14,7 @@ async function fetchReleaseVersions() {
       .filter(v => v.type === "release")
       .map(v => ({
         id: v.id,
-        type: v.type,
-        url: v.url,
+        type: v.type
       }));
 
     return releaseVersions;
@@ -35,7 +34,7 @@ async function fetchForgeVersions() {
 
   return Object.entries(data.promos)
     .map(([key, value]) => ({ 
-      id: key.split("-")[0] + "-" + value, 
+      id: key.split("-")[0] + "-forge-" + value, 
       type: "forge", 
     }));
 
