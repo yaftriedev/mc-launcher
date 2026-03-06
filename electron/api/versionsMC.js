@@ -44,7 +44,47 @@ async function fetchVersionsAll() {
   const releaseVersions = await fetchReleaseVersions();
   const forgeVersions = await fetchForgeVersions();
   
-  return [...releaseVersions, ...forgeVersions];
-}
+  const allVersions = [...releaseVersions, ...forgeVersions];
+  
+  // Elimina duplicados
+  const seen = new Set();
+  const uniqueVersions = allVersions.filter(item => {
+  const key = `${item.type}|${item.id}`;
+  if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+
+  return uniqueVersions.sort((a, b) => {
+    
+    // 2. Extraer la parte antes del guion
+    const idA = a.id.split("-")[0];
+    const idB = b.id.split("-")[0];
+
+    // 3. Comparar x.x.x numéricamente
+    const partsA = idA.split(".").map(Number);
+    const partsB = idB.split(".").map(Number);
+
+    for (let i = 0; i < Math.max(partsA.length, partsB.length); i++) {
+      const numA = partsA[i] ?? 0;
+      const numB = partsB[i] ?? 0;
+
+      if (numA !== numB) {
+        return numB - numA;
+      }
+    }
+
+    // 1. Ordenar por prioridad del type
+    const priority = ["release", "forge", "other"];
+    const prioA = priority.indexOf(a.type);
+    const prioB = priority.indexOf(b.type);
+
+    if (prioA !== prioB) {
+      return prioB - prioA;
+    }
+
+    return 0;
+  });
+};
 
 module.exports = { fetchReleaseVersions, fetchForgeVersions, fetchVersionsAll };
