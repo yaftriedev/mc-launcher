@@ -1,8 +1,6 @@
-const { install } = require('@xmcl/installer');
-const { handleProgress, getArgs, downloadFile, verifyChecksum } = require('./util')
+const { downloadFile, verifyChecksum } = require('./../util/downloads')
 const fs = require('fs');
 const path = require('path');
-const { hash } = require('crypto');
 
 /**
  * Instala una versión del juego descargando los archivos necesarios y verificando su integridad.
@@ -12,22 +10,26 @@ const { hash } = require('crypto');
  * @param {string} options.jsonUrl - URL desde donde se descargará el archivo JSON de la versión.
  * @return {Promise<boolean>} - Devuelve true si coinciden el hash y el client.jar o false si no.
  */
-async function downloadVersion({
+async function installReleaseVersion({
   versionPath,
   jsonVersionPath,
+  versionId,
   jsonUrl
 }) {
   // Crear carpeta y descargar fichero
-  fs.mkdirSync(versionPath, { recursive: true });
-  await downloadFile(jsonUrl, jsonVersionPath)
-
+  if (!fs.existsSync(jsonVersionPath)) {
+    fs.mkdirSync(versionPath, { recursive: true });
+    await downloadFile(jsonUrl, jsonVersionPath)
+  }
+  
   // Obtener versionMeta
   const versionMeta = require(jsonVersionPath)
 
   // Descargar client.jar
   const clientJarPath = path.join(versionPath, `${versionId}.jar`)
   const clientJar = versionMeta.downloads.client
-  await downloadFile(clientJar.url, clientJarPath)
+  
+  if (!fs.existsSync(clientJarPath)) await downloadFile(clientJar.url, clientJarPath)
   
   // Verificar el sha1 de el client.jar descargado y el original
   if (!verifyChecksum(clientJarPath, clientJar.sha1)) {
@@ -37,6 +39,50 @@ async function downloadVersion({
   }
 
   return true;
+}
+
+/**
+ * Descarga el instalador de Forge correspondiente a una versión específica de Minecraft y ejecuta el instalador en el directorio del juego.
+ * @param {Object} options - Parámetros de configuración.
+ * @param {string|undefined} options.gameDir - Directorio donde está instalado Minecraft y donde se ejecutará la instalación.
+ * @param {string|undefined} options.versionId - Identificador de versión en formato similar a:
+ * `"forge-<mcVersion>-<forgeVersion>"`. Se usa para extraer la versión de Minecraft y de Forge.
+ */
+async function installForgeVersion({
+  gameDir=undefined, 
+  versionId=undefined
+}) {
+  try {
+    
+    const mcVersion = versionId.split("-")[0];
+    const forgeVersion = versionId.split("-")[2];
+
+    const url = `https://maven.minecraftforge.net/net/minecraftforge/forge/${mcVersion}-${forgeVersion}/forge-${mcVersion}-${forgeVersion}-installer.jar`
+    
+    const outputPath = path.join(
+      gameDir, "installer",
+      `forge-${mcVersion}-${forgeVersion}-installer.jar`
+    );
+
+    console.log("Descargando...");
+    await downloadFile(url, outputPath);
+
+    console.log("Descarga completada:");
+    console.log(outputPath);
+
+    const child = spawn('java', [
+      '-jar',
+      outputPath,
+      '--installClient',
+      gameDir
+    ], {
+      stdio: 'inherit',
+      env: process.env
+    });
+
+  } catch (err) {
+    console.error("Error:", err.message);
+  }
 }
 
 /**
@@ -56,6 +102,8 @@ async function downloadLibraries({
     const { url, path: relPath, sha1 } = lib.downloads.artifact;
     const savePath = path.join(minecraftDir, "libraries", relPath);
 
+    if (fs.existsSync(savePath)) continue
+
     await fs.promises.mkdir(path.dirname(savePath), { recursive: true });
     await downloadFile(url, savePath);
 
@@ -69,6 +117,13 @@ async function downloadLibraries({
   return true;
 }
 
+/**
+ * Descarga todas los assets definidos en la metadata de la versión.
+ * @param {Object} options - Opciones para la instalación.
+ * @param {Object} options.versionMeta - Objeto JSON de metadata de la versión (descargado del manifiesto de Mojang).
+ * @param {string} options.minecraftDir - Carpeta raíz donde se almacenan los assets (por ejemplo, el directorio de .minecraft).
+ * @returns {Promise<void>} Una promesa que se resuelve cuando todas las librerías han sido procesadas.
+ */
 async function downloadAssets({
   versionMeta, 
   minecraftDir
@@ -81,20 +136,25 @@ async function downloadAssets({
     console.log("Error, no existe")
   }
 
-  // Obtener json del archivo
-  const res = await fetch(assetsUrl);
+  // Descargar el Json
+  const assetsJsonPath = path.join(minecraftDir, "assets", "indexes", assetsUrl.split("/").pop());
 
-  if (!res.ok) throw new Error(`Error al descargar JSON: ${res.status} ${res.statusText}`);
-  const assetsJson = await res.json();
-
+  if (!fs.existsSync(assetsJsonPath)) {
+    await fs.promises.mkdir(path.dirname(assetsJsonPath), { recursive: true });
+    await downloadFile(assetsUrl, assetsJsonPath);
+  }
+  
   // Obtener lista de objetos con relPath y hash
+  const assetsJson = require(assetsJsonPath);
   const listAssets = Object.entries(assetsJson.objects).map(([key, value]) => (value.hash));
 
   for (const hash of listAssets) {
 
     const savePath = path.join(minecraftDir, "assets", "objects", hash.substring(0,2), hash)
     const url = `https://resources.download.minecraft.net/${hash.substring(0,2)}/${hash}`
-    
+
+    if (fs.existsSync(savePath)) continue
+
     await fs.promises.mkdir(path.dirname(savePath), { recursive: true });
     await downloadFile(url, savePath);
 
@@ -103,53 +163,7 @@ async function downloadAssets({
       if (fs.existsSync(savePath)) fs.unlinkSync(savePath);
       return false;
     }
-
-  }
-
-}
-
-async function installRelease({ 
-  jsonUrl, 
-  versionId, 
-  gameDir
-}) {
-  try {
-    
-    const versionPath = path.join(gameDir, "versions", versionId)
-    const jsonVersionPath = path.join(versionPath, `${versionId}.json`)
-
-    if (!fs.existsSync(versionPath)) {
-      downloadVersion({
-        versionPath: versionPath,
-        jsonVersionPath: jsonVersionPath,
-        jsonUrl: jsonUrl
-      })
-    }
-
-    const versionMeta = require(jsonVersionPath) 
-
-    // await downloadLibraries({
-    //   versionMeta: versionMeta,
-    //   minecraftDir: gameDir
-    // })
-
-    await downloadAssets({
-      versionMeta: versionMeta,
-      minecraftDir: gameDir
-    })
-    
-    return { "installed": true, "err": false};
-
-  } catch (err) {
-    console.error("Error:", err);
   }
 }
 
-module.exports = { downloadAssets, downloadLibraries, downloadVersion, installRelease }
-
-// Ejemplo de uso
-installRelease({
-  "jsonUrl": "https://piston-meta.mojang.com/v1/packages/8b2e55c0b18754cb5ff96a0db99bfdbc81679691/1.21.11.json",
-  "gameDir": "C:/Users/Yaftrie/Documents/mc-launcher/instances/hola",
-  "versionId": "1.21.11"
-});
+module.exports = { downloadAssets, downloadLibraries, installReleaseVersion, installForgeVersion }

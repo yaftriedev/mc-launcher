@@ -14,7 +14,8 @@ async function fetchReleaseVersions() {
       .filter(v => v.type === "release")
       .map(v => ({
         id: v.id,
-        type: v.type
+        type: v.type, 
+        url: v.url
       }));
 
     return releaseVersions;
@@ -35,7 +36,8 @@ async function fetchForgeVersions() {
   return Object.entries(data.promos)
     .map(([key, value]) => ({ 
       id: key.split("-")[0] + "-forge-" + value, 
-      type: "forge", 
+      type: "forge",
+      url: ""
     }));
 
 }
@@ -48,12 +50,14 @@ async function fetchVersionsAll() {
   
   // Elimina duplicados
   const seen = new Set();
-  const uniqueVersions = allVersions.filter(item => {
-  const key = `${item.type}|${item.id}`;
-  if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
+  const uniqueVersions = allVersions
+    .filter(item => item?.id && typeof item.id === "string")
+    .filter(item => {
+      const key = `${item.type}|${item.id}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
 
   return uniqueVersions.sort((a, b) => {
     

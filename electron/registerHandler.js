@@ -1,12 +1,12 @@
 const { ipcMain, app } = require('electron');
 const path = require('path');
 
-const { saveName, loadName, saveInstances, loadInstances, initStorage } = require('./storage');
-const { LaunchMinecraft } = require('./minecraft');
-const { fetchReleaseVersions, fetchForgeVersions, fetchVersionsAll } = require('./versionsMC');
+const { saveName, loadName, saveInstances, loadInstances } = require('./api/storage');
+const { LaunchMinecraft } = require('./api/launchMinecraft');
+const { fetchReleaseVersions, fetchForgeVersions, fetchVersionsAll } = require('./api/versionsMC');
 
-const { save, load, openFolder } = require('./../util/file');
-const { dataFilePath } = require('./../util/const');
+const { save, load, openFolder } = require('./util/file');
+const { dataFilePath } = require('./util/const');
 
 // Handler para IPC que expone las funciones de almacenamiento a la capa de renderizado
 function registerHandler(win) {  
@@ -57,4 +57,4 @@ function registerHandler(win) {
 
 }
 
-module.exports = { initStorage, registerHandler, initStorage };
+module.exports = { registerHandler };

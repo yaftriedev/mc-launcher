@@ -1,8 +1,9 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow } = require('electron');
 const path = require('path');
 
 // Importar funciones de las APIs
-const { initStorage, registerHandler } = require('./api/registerHandler');
+const { registerHandler } = require('./registerHandler');
+const { initStorage } = require('./api/storage')
 
 // Inicializar las APIs
 initStorage()
@@ -16,6 +17,7 @@ function createWindow() {
   win = new BrowserWindow({
     width: 1000,
     height: 700,
+    icon: path.join(__dirname, "../public/icon.png"),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
