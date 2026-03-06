@@ -66,11 +66,10 @@ export default function Instance({ instancia, onDelete }) {
           >
             <option value="">Selecciona una versión</option>
             {versiones
-              .sort((a, b) => a.id.localeCompare(b.id))
               .map(version => (
               <option 
                 key={version.id}
-                value={JSON.stringify({ id: version.id, type: version.type })}>
+                value={JSON.stringify({ id: version.id, type: version.type, url: version.url })}>
                   {versionToText(version)}
               </option>
             ))}

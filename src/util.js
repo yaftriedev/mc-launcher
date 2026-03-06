@@ -33,7 +33,9 @@ export const LaunchInstance = async (instancia) => {
   
   const options = { 
     name: instancia.name, // Ejemplo de ruta
-    version: instancia.version.id, // Usar la versión de la instancia
+    versionId: instancia.version.id, // Usar la versión de la instancia
+    versionType: instancia.version.type,
+    url: instancia.version.url,
     username: await loadName() // Aquí podrías usar un nombre de usuario dinámico si lo deseas
   };
 
