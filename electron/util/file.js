@@ -1,7 +1,10 @@
+const { createWriteStream } = require('fs')
 const fs = require('fs').promises;
+const os = require('os')
 const path = require('path');
 const { shell } = require('electron');
-const { mcInstancesPath } = require('./const');
+const { exec } = require('child_process')
+const { mcInstancesPath, logPath } = require('./const');
 
 async function save(data, filePath) {
   try {
@@ -32,4 +35,19 @@ async function openFolder(name) {
   }
 }
 
-module.exports = { save, load, openFolder };
+const getJavaPath = async () =>
+  new Promise((res, rej) =>
+    exec(os.platform() === "win32" ? "where java" : "which java",
+      (e, out) => e || !out
+        ? rej(new Error("Java no encontrado"))
+        : res(out.split("\n")[0].trim())
+    )
+  );
+
+const logStream = createWriteStream(logPath, { flags: "w" });
+const log = (msg) => {
+  if (logStream.writableEnded) return; 
+  logStream.write(msg);
+}
+
+module.exports = { save, load, openFolder, getJavaPath, log };
