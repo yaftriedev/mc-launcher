@@ -7,8 +7,6 @@ const { initStorage } = require('./api/storage')
 
 // Inicializar las APIs
 initStorage()
-  .then(result => console.log(result.message))
-  .catch(error => console.error("Error initializing storage:", error));
 
 let win = null;
 
