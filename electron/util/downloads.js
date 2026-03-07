@@ -37,15 +37,6 @@ async function downloadFile(url, destination) {
         return;
       }
 
-      const totalSize = parseInt(response.headers['content-length'], 10);
-      let downloadedSize = 0;
-
-      response.on('data', (chunk) => {
-        downloadedSize += chunk.length;
-        const progress = ((downloadedSize / totalSize) * 100).toFixed(2);
-        process.stdout.write(`\r📥 Descargando: ${progress}%`);
-      });
-
       response.on('error', (error) => {
         file.close();
         try { fs.unlinkSync(destination); } catch (e) { }
@@ -60,14 +51,10 @@ async function downloadFile(url, destination) {
             try { fs.unlinkSync(destination); } catch (e) { }
             reject(err || fileWriteError);
           } else {
-            console.log("\n✅ Descarga completada: " + destination);
-
             // Verificar que el archivo se escribió correctamente
             if (!fs.existsSync(destination)) {
               reject(new Error("El archivo no se guardó correctamente"));
             } else {
-              const stats = fs.statSync(destination);
-              console.log(`📦 Tamaño del archivo descargado: ${stats.size} bytes`);
               resolve();
             }
           }
