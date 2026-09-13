@@ -1,12 +1,12 @@
 import React from "react";
-import { loadName, saveName, getMSGInfo } from "../util";
+import { getMSGInfo } from "../util";
 
 export default function Header() {
   const [name, setName] = React.useState("");
 
   React.useEffect(() => {
     const _loadName = async () => {
-      const storedName = await loadName();
+      const storedName = await window.api.loadName();
       if (storedName) setName(storedName);
     };
     _loadName();
@@ -15,7 +15,7 @@ export default function Header() {
   const _saveName = async (e) => {
     const newValue = e.target.value;
     setName(newValue);
-    await saveName(newValue);
+    await window.api.saveName(newValue);
   };
 
   return (

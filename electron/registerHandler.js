@@ -1,33 +1,43 @@
 const { ipcMain, app } = require('electron');
 const path = require('path');
 
-const { saveName, loadName, saveInstances, loadInstances } = require('./api/storage');
-const { LaunchMinecraft } = require('./api/launchMinecraft');
-const { fetchReleaseVersions, fetchForgeVersions, fetchVersionsAll } = require('./api/versionsMC');
+const { StorageManager } = require('./lib/StorageManager');
+const { MinecraftManager } = require('./lib/MinecraftManager')
+const { fetchVersionsAll } = require('./api/versionsMC');
 
-const { save, load, openFolder } = require('./util/file');
-const { dataFilePath } = require('./util/const');
+const { openFolder, log, getJavaPath } = require('./util/file');
+const { config } = require('./config');
+
+const storageManager = new StorageManager(config.dataFilePath);
+
+const launchMinecraft = async (win, options) => {
+  new MinecraftManager({
+    gameDir: path.join(config.mcInstancesPath, "hola"),
+    versionId: options.versionId,
+    versionType: options.versionType,
+    jsonUrl: options.url,
+    username: storageManager.loadName(),
+    javaPath: await getJavaPath(),
+    sendProgress: (p) => win.webContents.send('progress-update', p),
+    log: (d) => log(d),
+    onClose: () => win.webContents.send('mc-closed')
+  }).launch()
+}
 
 // Handler para IPC que expone las funciones de almacenamiento a la capa de renderizado
-function registerHandler(win) {  
-  
-  // save file
-  ipcMain.handle('save-data', async (event, { data }) =>  await save(data, dataFilePath))
-
-  // load file
-  ipcMain.handle('load-data', async (event) => await load(dataFilePath));
+const registerHandler = (win) => {  
 
   // save name
-  ipcMain.handle('save-name', async (event, { name }) => await saveName(name));
+  ipcMain.handle('save-name', async (event, { name }) => await storageManager.saveName(name));
 
   // load name
-  ipcMain.handle('load-name', async (event) => await loadName());
+  ipcMain.handle('load-name', async (event) => await storageManager.loadName());
 
   // save instances
-  ipcMain.handle('save-instances', async (event, { instances }) => await saveInstances(instances));
+  ipcMain.handle('save-instances', async (event, { instances }) => await storageManager.saveInstances(instances));
 
   // load instances
-  ipcMain.handle('load-instances', async (event) => await loadInstances());
+  ipcMain.handle('load-instances', async (event) => await storageManager.loadInstances());
 
   // Progress and MC closed events
   ipcMain.handle('send-progress', (event, { value }) => event.sender.send('progress-update', value));
@@ -49,11 +59,9 @@ function registerHandler(win) {
 
   // Get versions
   ipcMain.handle('get-versions-all', async (event) => fetchVersionsAll());
-  ipcMain.handle('get-versions-release', async (event) => fetchReleaseVersions());
-  ipcMain.handle('get-versions-forge', async (event) => fetchForgeVersions());
 
   // Launch Minecraft
-  ipcMain.handle('launch-minecraft', async (event, { options }) => await LaunchMinecraft(win, options));
+  ipcMain.handle('launch-minecraft', async (event, { options }) => await launchMinecraft(win, options));
 
 }
 

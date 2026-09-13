@@ -1,6 +1,5 @@
-export const getInfo = async () => await window.api.getInfo();
 export const getMSGInfo = async () => {
-  const info = await getInfo();
+  const info = await window.api.getInfo();
   return `
     MC yLauncher\n
     Versión: ${info.version}
@@ -9,9 +8,6 @@ export const getMSGInfo = async () => {
     Ruta de datos: ${info.userDataPath}
     `;
 }
-
-export const saveName = async (name) => await window.api.saveName(name);
-export const loadName = async () => await window.api.loadName();
 
 export const saveInstances = async (instances) => await window.api.saveInstances(instances);
 export const loadInstances = async () => await window.api.loadInstances();
@@ -36,7 +32,7 @@ export const LaunchInstance = async (instancia) => {
     versionId: instancia.version.id, // Usar la versión de la instancia
     versionType: instancia.version.type,
     url: instancia.version.url,
-    username: await loadName() // Aquí podrías usar un nombre de usuario dinámico si lo deseas
+    username: await window.api.loadName() // Aquí podrías usar un nombre de usuario dinámico si lo deseas
   };
 
   window.api.launchInstance(options);

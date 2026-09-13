@@ -1,8 +1,8 @@
-const { release_versions_url } = require('./../util/const');
+const { config } = require('../config');
 
 async function fetchReleaseVersions() {
   try {
-    const response = await fetch(release_versions_url)
+    const response = await fetch(config.release_versions_url)
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -27,7 +27,7 @@ async function fetchReleaseVersions() {
 }
 
 async function fetchForgeVersions() {
-  const res = await fetch(forge_promotions_url);
+  const res = await fetch(config.forge_promotions_url);
   
   if (!res.ok) throw new Error("Error obteniendo versiones Forge");
 

@@ -1,5 +1,5 @@
-const { mcInstancesPath } = require('./../util/const');
-const { MinecraftInstaller } = require('./installMinecraft.js')
+const { config } = require('./../config.js');
+const { minecraftManager } = require('../lib/MinecraftManager.js')
 const path = require('path');
 const fs = require('fs')
 const { log, getJavaPath } = require('../util/file.js')
@@ -21,43 +21,9 @@ const { log, getJavaPath } = require('../util/file.js')
 async function LaunchMinecraft(mainWindow, {name, versionId, versionType, url, username}) {
   try {
 
-    const gameDir = path.join(mcInstancesPath, name);
-    const javaPath = await getJavaPath();
 
-    const minecraftInstaller = new MinecraftInstaller({
-      gameDir: gameDir,
-      versionId: versionId,
-      versionType: versionType,
-      jsonUrl: url,
-      username: username,
-      javaPath: javaPath,
-      sendProgress: (p) => mainWindow.webContents.send('progress-update', p)
-    })
       
-    if (versionType === "release") await minecraftInstaller.installReleaseVersion()
 
-    else if (versionType === "forge") {
-      if (!fs.existsSync(versionPath)) await minecraftInstaller.installForgeVersion()
-    }
-
-    else log("Type Error: " + versionType)
-
-    const versionMeta = require(minecraftInstaller.getJsonVersionPath()) 
-
-    await minecraftInstaller.downloadLibraries(versionMeta)
-
-    await minecraftInstaller.downloadAssets(versionMeta)
-
-    log(" Starting MC ")
-  
-    await minecraftInstaller.launch(
-      (data) => log(data.toString()),
-      (err) => log(err.toString()),
-      (code) => {
-        log(`Juego cerrado con código ${code}`);
-        mainWindow.webContents.send('mc-closed');
-      }
-    )
 
     return { success: true };
   } catch (error) {

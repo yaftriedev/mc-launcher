@@ -1,9 +1,17 @@
-const { downloadFile, verifyChecksum } = require('./../util/downloads')
+const { downloadFile, verifyChecksum } = require('./Downloads')
 const { launch } = require('@xmcl/core')
 const fs = require('fs');
 const path = require('path');
 
-class MinecraftInstaller {
+// Constructor
+// getJsonVersionPath
+// installReleaseVersion
+// installForgeVersion
+// downloadLibraries
+// downloadAssets
+// launch
+
+class MinecraftManager {
 
   /**
    * @param {string} gameDir - Ruta de la carpeta principal del juego donde se guardan archivos, mods y configuraciones.
@@ -12,9 +20,11 @@ class MinecraftInstaller {
    * @param {string} jsonUrl - URL desde donde se descarga el archivo JSON con la información de la versión del juego.
    * @param {string} username - Nombre del jugador que aparecerá dentro del juego.
    * @param {string} javaPath - Ruta del ejecutable de Java que se usará para lanzar el juego.
-   * @param {function(int)} sendProgress - Ejecuta una funcion con el porcentaje de progreso en descargas
+   * @param {function(int)} sendProgress - Ejecuta una funcion con el porcentaje de progreso en descargas.
+   * @param {function(string)} log - Ejecuta una funcion para mostrar log de errores y informacion.
+   * @param {function} onClose - Funcion que envia el mensaje de que se cerro el juego
    */
-  constructor({ gameDir, versionId, versionType, jsonUrl, username, javaPath, sendProgress }) {
+  constructor({ gameDir, versionId, versionType, jsonUrl, username, javaPath, sendProgress, log, onClose }) {
     this.gameDir = gameDir,
     this.versionId = versionId,
     this.versionType = versionType,
@@ -22,14 +32,11 @@ class MinecraftInstaller {
     this.username = username,
     this.javaPath = javaPath,
     this.sendProgress = sendProgress,
+    this.log = log,
+    this.onClose = onClose,
     this.versionPath = path.join(gameDir, "versions", versionId)
     this.jsonVersionPath = path.join(this.versionPath, `${versionId}.json`)
   }
-
-  /**
-   * @return {string} jsonVersionPath - Propiedades definidas por el constructor a mayores
-   */
-  getJsonVersionPath = () => this.jsonVersionPath
 
   /**
    * Instala una versión del juego descargando los archivos necesarios y verificando su integridad.
@@ -38,7 +45,7 @@ class MinecraftInstaller {
    * @param {string} this.jsonUrl - URL desde donde se descargará el archivo JSON de la versión.
    * @return {Promise<boolean>} - Devuelve true si coinciden el hash y el client.jar o false si no.
    */
-  async installReleaseVersion() {
+  async #installReleaseVersion() {
     // Crear carpeta y descargar fichero
     if (!fs.existsSync(this.jsonVersionPath)) {
       fs.mkdirSync(this.versionPath, { recursive: true });
@@ -70,7 +77,7 @@ class MinecraftInstaller {
    * @param {string|undefined} this.versionId - Identificador de versión en formato similar a:
    * `"forge-<mcVersion>-<forgeVersion>"`. Se usa para extraer la versión de Minecraft y de Forge.
    */
-  async installForgeVersion() {
+  async #installForgeVersion() {
     try {
       
       const mcVersion = this.versionId.split("-")[0];
@@ -110,7 +117,7 @@ class MinecraftInstaller {
    * @param {string} this.gameDir - Carpeta raíz donde se almacenan las librerías (por ejemplo, el directorio de .minecraft).
    * @returns {Promise<void>} Una promesa que se resuelve cuando todas las librerías han sido procesadas.
    */
-  async downloadLibraries(versionMeta) {
+  async #downloadLibraries(versionMeta) {
     for (const [index, lib] of versionMeta.libraries.entries()) {
       if (!lib.downloads || !lib.downloads.artifact) continue;
 
@@ -140,7 +147,7 @@ class MinecraftInstaller {
    * @param {string} this.gameDir - Carpeta raíz donde se almacenan los assets (por ejemplo, el directorio de .minecraft).
    * @returns {Promise<void>} Una promesa que se resuelve cuando todas las librerías han sido procesadas.
    */
-  async downloadAssets(versionMeta) {
+  async #downloadAssets(versionMeta) {
 
     // Obtener ruta del archivo de assets .json 
     const assetsUrl = versionMeta.assetIndex.url
@@ -191,11 +198,7 @@ class MinecraftInstaller {
    * @param {function(Buffer)} onError - Se ejecuta cuando el juego envía errores por stderr.
    * @param {function(number)} onClose - Se ejecuta cuando el proceso de Minecraft se cierra.
    */
-  async launch(
-    onData = (data) => {}, 
-    onError = (data) => {},
-    onClose = (code) => {}
-  ) {
+  async #launch() {
     try {
       const proc = await launch({
         gamePath: this.gameDir,
@@ -212,15 +215,43 @@ class MinecraftInstaller {
         }
       })
 
-      proc.stdout.on('data', onData)
-      proc.stderr.on('data', onError)
-      proc.on('close', onClose)
+      proc.stdout.on('data', d => this.log(d.toString()))
+      proc.stderr.on('data', d => this.log(d.toString()))
+      proc.on('close', code => {
+        this.log(`Juego cerrado con código ${code}`)
+        this.onClose()
+      })
     }
 
-    catch (err) { onError(err) }
+    catch (err) { this.log(err) }
+  }
+
+  /**
+   * @param {string} this.jsonVersionPath - Path al json que contiene las versiones
+   * @param {function} this.#installReleaseVersion - Instala la version release: client.jar y .json  
+   * @param {function} this.#installForgeVersion - Instala la version forge a partir de la release
+   * @param {function(json)} this.#downloadLibraries - Descargar las librerias requeridas por la version
+   * @param {function(json)} this.#downloadAssets - Descargar los assets requeridos por la version
+   * @param {function} this.#launch - inicia el juego
+   */
+  async launch() {
+    if (versionType === "release") await this.#installReleaseVersion()
+
+    else if (versionType === "forge") {
+      if (!fs.existsSync(versionPath)) await this.#installForgeVersion()
+    }
+
+    else this.log("Type Error: " + versionType)
+
+    const versionMeta = require(this.jsonVersionPath) 
+
+    await this.#downloadLibraries(versionMeta)
+    await this.#downloadAssets(versionMeta)
+
+    this.log(" Starting MC ")
+  
+    await this.#launch()
   }
 }
 
-module.exports = { MinecraftInstaller }
-
-// 
+module.exports = { MinecraftManager }

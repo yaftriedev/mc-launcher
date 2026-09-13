@@ -1,6 +1,11 @@
 import React from "react";
-import { versionToText, LaunchInstance, getVersionsRelease } from '../util.js';
-import { loadInstances, saveInstances } from "../util";
+import { 
+  versionToText, 
+  LaunchInstance, 
+  getVersionsRelease ,
+  loadInstances,
+  saveInstances
+} from '../util.js';
 
 export default function Instance({ instancia, onDelete }) {
   

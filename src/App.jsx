@@ -5,7 +5,7 @@ import Header from './components/Header.jsx';
 import CreateInstance from './components/CreateInstance.jsx';
 import ProgressBar from './components/ProgresiveBar.jsx';
 
-import { loadInstances, createInstance, saveInstances } from './util.js';
+import {createInstance } from './util.js';
 
 export default function App() {
   
@@ -15,7 +15,7 @@ export default function App() {
   // Cargar instancias al iniciar la aplicación
   React.useEffect(() => {
     const _loadInstances = async () => {
-      const storedInstances = await loadInstances();
+      const storedInstances = await window.api.loadInstances();
       console.log("storedInstances:", storedInstances);
       if (storedInstances) setInstancias(storedInstances);
     };
@@ -29,7 +29,7 @@ export default function App() {
 
     const newInstancias = [...instancias, newInstance];
     setInstancias(newInstancias);
-    await saveInstances(newInstancias);
+    await window.api.saveInstances(newInstancias);
     
   }
 
@@ -41,7 +41,7 @@ export default function App() {
 
     const newInstancias = instancias.filter((_, i) => i !== index);
     setInstancias(newInstancias);
-    await saveInstances(newInstancias);
+    await await window.api.saveInstances(newInstancias);
   }
   
   return (

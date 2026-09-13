@@ -3,15 +3,18 @@ const path = require('path');
 
 // Importar funciones de las APIs
 const { registerHandler } = require('./registerHandler');
-const { initStorage } = require('./api/storage')
+const { StorageManager } = require('./lib/StorageManager')
+const { config } = require("./config");
 
 // Inicializar las APIs
-initStorage()
+new StorageManager(config.dataFilePath).initStorage()
 
-let win = null;
+app.whenReady().then(() => {
+  // Flag para software rendering
+  app.commandLine.appendSwitch('disable-gpu');
+  app.commandLine.appendSwitch('disable-software-rasterizer');
+  app.commandLine.appendSwitch('enable-features', 'UseOzonePlatform'); // opcional en Linux
 
-// Crear la ventana principal de la aplicación
-function createWindow() {
   win = new BrowserWindow({
     width: 1000,
     height: 700,
@@ -27,15 +30,6 @@ function createWindow() {
   // Cargar tu React desde webpack-dev-server
   win.loadURL('http://localhost:8080');
 
-}
-
-app.whenReady().then(() => {
-  // Flag para software rendering
-  app.commandLine.appendSwitch('disable-gpu');
-  app.commandLine.appendSwitch('disable-software-rasterizer');
-  app.commandLine.appendSwitch('enable-features', 'UseOzonePlatform'); // opcional en Linux
-
-  createWindow(); 
   registerHandler(win);
   
 });
