@@ -1,42 +1,42 @@
 const { downloadFile, verifyChecksum } = require('./Downloads')
-const { launch } = require('@xmcl/core')
 const fs = require('fs');
 const path = require('path');
 
 // Constructor
-// getJsonVersionPath
 // installReleaseVersion
-// installForgeVersion
 // downloadLibraries
 // downloadAssets
-// launch
+// install -> por definir
+// launch -> por definir
+// start -> lanza el juego
 
-class MinecraftManager {
+class MinecraftCore {
 
   /**
    * @param {string} gameDir - Ruta de la carpeta principal del juego donde se guardan archivos, mods y configuraciones.
    * @param {string} versionId - Identificador de la versión del juego que se quiere ejecutar (por ejemplo: "1.20.1").
-   * @param {string} versionType - Tipo de versión del juego (release, snapshot, modded, etc.).
    * @param {string} jsonUrl - URL desde donde se descarga el archivo JSON con la información de la versión del juego.
    * @param {string} username - Nombre del jugador que aparecerá dentro del juego.
    * @param {string} javaPath - Ruta del ejecutable de Java que se usará para lanzar el juego.
    * @param {function(int)} sendProgress - Ejecuta una funcion con el porcentaje de progreso en descargas.
    * @param {function(string)} log - Ejecuta una funcion para mostrar log de errores y informacion.
-   * @param {function} onClose - Funcion que envia el mensaje de que se cerro el juego
    */
-  constructor({ gameDir, versionId, versionType, jsonUrl, username, javaPath, sendProgress, log, onClose }) {
+  constructor({ gameDir, versionId, jsonUrl, username, javaPath, sendProgress, log }) {
     this.gameDir = gameDir,
     this.versionId = versionId,
-    this.versionType = versionType,
     this.jsonUrl = jsonUrl,
     this.username = username,
     this.javaPath = javaPath,
     this.sendProgress = sendProgress,
     this.log = log,
-    this.onClose = onClose,
     this.versionPath = path.join(gameDir, "versions", versionId)
     this.jsonVersionPath = path.join(this.versionPath, `${versionId}.json`)
   }
+
+  // Funciones para mensajes unificados
+  #msgDownloading(path) { return `Descargando archivo ${path}`}
+  #msgDownloadComplete(path) {return `Archivo descargado en ${path}` }
+  #msgDownloadProgress(i, total, path) { return `${i}/${total} Archivo descargado en ${path}` }
 
   /**
    * Instala una versión del juego descargando los archivos necesarios y verificando su integridad.
@@ -45,11 +45,13 @@ class MinecraftManager {
    * @param {string} this.jsonUrl - URL desde donde se descargará el archivo JSON de la versión.
    * @return {Promise<boolean>} - Devuelve true si coinciden el hash y el client.jar o false si no.
    */
-  async #installReleaseVersion() {
+  async installReleaseVersion() {
     // Crear carpeta y descargar fichero
     if (!fs.existsSync(this.jsonVersionPath)) {
       fs.mkdirSync(this.versionPath, { recursive: true });
+      this.log( this.#msgDownloading(this.jsonVersionPath) )
       await downloadFile(this.jsonUrl, this.jsonVersionPath)
+      this.log( this.#msgDownloadComplete(this.jsonVersionPath) )
     }
     
     // Obtener versionMeta
@@ -59,11 +61,15 @@ class MinecraftManager {
     const clientJarPath = path.join(this.versionPath, `${this.versionId}.jar`)
     const clientJar = versionMeta.downloads.client
     
-    if (!fs.existsSync(clientJarPath)) await downloadFile(clientJar.url, clientJarPath)
+    if (!fs.existsSync(clientJarPath)) {
+      this.log( this.#msgDownloading(clientJarPath) )
+      await downloadFile(clientJar.url, clientJarPath)
+      this.log( this.#msgDownloadComplete(clientJarPath) )
+    }
     
     // Verificar el sha1 de el client.jar descargado y el original
     if (!verifyChecksum(clientJarPath, clientJar.sha1)) {
-      console.log("Error, los hashes no coinciden: " + clientJarPath)
+      this.log("Error, los hashes no coinciden: " + clientJarPath)
       if (fs.existsSync(clientJarPath)) fs.unlinkSync(clientJarPath);
       return false;
     }
@@ -72,52 +78,12 @@ class MinecraftManager {
   }
 
   /**
-   * Descarga el instalador de Forge correspondiente a una versión específica de Minecraft y ejecuta el instalador en el directorio del juego.
-   * @param {string|undefined} this.gameDir - Directorio donde está instalado Minecraft y donde se ejecutará la instalación.
-   * @param {string|undefined} this.versionId - Identificador de versión en formato similar a:
-   * `"forge-<mcVersion>-<forgeVersion>"`. Se usa para extraer la versión de Minecraft y de Forge.
-   */
-  async #installForgeVersion() {
-    try {
-      
-      const mcVersion = this.versionId.split("-")[0];
-      const forgeVersion = this.versionId.split("-")[2];
-
-      const url = `https://maven.minecraftforge.net/net/minecraftforge/forge/${mcVersion}-${forgeVersion}/forge-${mcVersion}-${forgeVersion}-installer.jar`
-      
-      const outputPath = path.join(
-        this.gameDir, "installer",
-        `forge-${mcVersion}-${forgeVersion}-installer.jar`
-      );
-
-      console.log("Descargando...");
-      await downloadFile(url, outputPath);
-
-      console.log("Descarga completada:");
-      console.log(outputPath);
-
-      const child = spawn('java', [
-        '-jar',
-        outputPath,
-        '--installClient',
-        this.gameDir
-      ], {
-        stdio: 'inherit',
-        env: process.env
-      });
-
-    } catch (err) {
-      console.error("Error:", err.message);
-    }
-  }
-
-  /**
    * Descarga todas las librerías definidas en la metadata de la versión.
    * @param {Object} versionMeta - Objeto JSON de metadata de la versión (descargado del manifiesto de Mojang).
    * @param {string} this.gameDir - Carpeta raíz donde se almacenan las librerías (por ejemplo, el directorio de .minecraft).
    * @returns {Promise<void>} Una promesa que se resuelve cuando todas las librerías han sido procesadas.
    */
-  async #downloadLibraries(versionMeta) {
+  async downloadLibraries(versionMeta) {
     for (const [index, lib] of versionMeta.libraries.entries()) {
       if (!lib.downloads || !lib.downloads.artifact) continue;
 
@@ -129,13 +95,13 @@ class MinecraftManager {
       await fs.promises.mkdir(path.dirname(savePath), { recursive: true });
       await downloadFile(url, savePath);
 
-      this.sendProgress( (index / versionMeta.libraries.length) * 100 )
-
       if (!verifyChecksum(savePath, sha1)) {
-        console.log("Error, los hashes no coinciden: " + savePath)
+        this.log("Error, los hashes no coinciden: " + savePath)
         if (fs.existsSync(savePath)) fs.unlinkSync(savePath);
         return false;
       }
+
+      this.log( this.#msgDownloadProgress(index, versionMeta.libraries.length, savePath) )
     }
 
     return true;
@@ -147,13 +113,13 @@ class MinecraftManager {
    * @param {string} this.gameDir - Carpeta raíz donde se almacenan los assets (por ejemplo, el directorio de .minecraft).
    * @returns {Promise<void>} Una promesa que se resuelve cuando todas las librerías han sido procesadas.
    */
-  async #downloadAssets(versionMeta) {
+  async downloadAssets(versionMeta) {
 
     // Obtener ruta del archivo de assets .json 
     const assetsUrl = versionMeta.assetIndex.url
     
     if (!assetsUrl) {
-      console.log("Error, no existe")
+      this.log("Error, no existe")
     }
 
     // Descargar el Json
@@ -162,7 +128,7 @@ class MinecraftManager {
     if (!fs.existsSync(assetsJsonPath)) {
       await fs.promises.mkdir(path.dirname(assetsJsonPath), { recursive: true });
       await downloadFile(assetsUrl, assetsJsonPath);
-    }
+    } 
     
     // Obtener lista de objetos con relPath y hash
     const assetsJson = require(assetsJsonPath);
@@ -178,80 +144,42 @@ class MinecraftManager {
       await fs.promises.mkdir(path.dirname(savePath), { recursive: true });
       await downloadFile(url, savePath);
 
-      this.sendProgress( (index / listAssets.length) * 100 )
-
       if (!verifyChecksum(savePath, hash)) {
-        console.log("Error, los hashes no coinciden: " + savePath)
+        this.log("Error, los hashes no coinciden: " + savePath)
         if (fs.existsSync(savePath)) fs.unlinkSync(savePath);
         return false;
       }
+
+      this.log( this.#msgDownloadProgress(index, listAssets.length, savePath) )
     }
   }
 
-  /**
-   * Lanza el juego usando la configuración almacenada en la clase.
-   * @param {string} this.gameDir - Carpeta principal del juego. Aquí están versiones, librerías, assets, etc.
-   * @param {string} this.versionId - Identificador de la versión que se quiere ejecutar.
-   * @param {string} this.javaPath - Ruta al ejecutable de Java que iniciará el juego.
-   * @param {string} this.username - Nombre del jugador que aparecerá dentro del juego.
-   * @param {function(Buffer)} onData - Se ejecuta cuando el juego envía información por stdout (logs normales).
-   * @param {function(Buffer)} onError - Se ejecuta cuando el juego envía errores por stderr.
-   * @param {function(number)} onClose - Se ejecuta cuando el proceso de Minecraft se cierra.
-   */
-  async #launch() {
-    try {
-      const proc = await launch({
-        gamePath: this.gameDir,
-        version: this.versionId,
-        javaPath: this.javaPath,
-        // minMemory: minMemory,
-        // maxMemory: maxMemory,
-        authorization: {
-          accessToken: "0",
-          clientToken: "0",
-          uuid: "00000000-0000-0000-0000-000000000000",
-          name: this.username,
-          userType: "mojang"
-        }
-      })
-
-      proc.stdout.on('data', d => this.log(d.toString()))
-      proc.stderr.on('data', d => this.log(d.toString()))
-      proc.on('close', code => {
-        this.log(`Juego cerrado con código ${code}`)
-        this.onClose()
-      })
-    }
-
-    catch (err) { this.log(err) }
-  }
+  // Instala la version correspondente
+  async install() {}
+  
+  // Lanza el juego
+  async launch() {}
 
   /**
    * @param {string} this.jsonVersionPath - Path al json que contiene las versiones
-   * @param {function} this.#installReleaseVersion - Instala la version release: client.jar y .json  
-   * @param {function} this.#installForgeVersion - Instala la version forge a partir de la release
+   * @param {function} this.#install - Instala la version correspondiente
    * @param {function(json)} this.#downloadLibraries - Descargar las librerias requeridas por la version
    * @param {function(json)} this.#downloadAssets - Descargar los assets requeridos por la version
    * @param {function} this.#launch - inicia el juego
    */
-  async launch() {
-    if (versionType === "release") await this.#installReleaseVersion()
+  async start() {
+    await this.install()
 
-    else if (versionType === "forge") {
-      if (!fs.existsSync(versionPath)) await this.#installForgeVersion()
-    }
-
-    else this.log("Type Error: " + versionType)
-
+    this.log(`Cargando archivo ${this.jsonVersionPath}`)
     const versionMeta = require(this.jsonVersionPath) 
 
-    await this.#downloadLibraries(versionMeta)
-    await this.#downloadAssets(versionMeta)
+    await this.downloadLibraries(versionMeta)
+    await this.downloadAssets(versionMeta)
 
-    this.log(" Starting MC ")
+    this.log("Starting MC ")
   
-    await this.#launch()
+    await this.launch()
   }
 }
 
-module.exports = { MinecraftManager }
+module.exports = { MinecraftCore }

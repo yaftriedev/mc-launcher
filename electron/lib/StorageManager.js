@@ -11,8 +11,7 @@ class StorageManager {
 
   async initStorage() {
     const initialData = {
-      name: "",
-      instances: []
+      name: ""
     };
 
     try {
@@ -74,25 +73,6 @@ class StorageManager {
     const currentData = await this.#load(this.filePath);
     if (!currentData.success) return { success: false, error: currentData.error };
     return currentData?.data?.name || "Steve";
-  }
-
-  async saveInstances(instances) {
-    try {
-      const currentData = await this.#load(this.filePath);
-      if (!currentData.success) return { success: false, error: currentData.error };
-      currentData.data.instances = instances;
-      const saveResult = await this.#save(currentData.data, this.filePath);
-      if (!saveResult.success) return { success: false, error: saveResult.error };
-      return { success: true };
-    } catch (error) {
-      return { success: false, error: error.message };
-    }
-  }
-
-  async loadInstances() {
-    const currentData = await this.#load(this.filePath);
-    if (!currentData.success) return { success: false, error: currentData.error };
-    return currentData?.data?.instances || {};
   }
 
 }

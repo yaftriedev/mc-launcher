@@ -3,11 +3,9 @@ const path = require('path');
 
 // Importar funciones de las APIs
 const { registerHandler } = require('./registerHandler');
-const { StorageManager } = require('./lib/StorageManager')
-const { config } = require("./config");
+const { initStorage } = require('./logic')
 
-// Inicializar las APIs
-new StorageManager(config.dataFilePath).initStorage()
+initStorage();
 
 app.whenReady().then(() => {
   // Flag para software rendering
@@ -16,7 +14,7 @@ app.whenReady().then(() => {
   app.commandLine.appendSwitch('enable-features', 'UseOzonePlatform'); // opcional en Linux
 
   win = new BrowserWindow({
-    width: 1000,
+    width: 1250,
     height: 700,
     icon: path.join(__dirname, "../public/icon.png"),
     webPreferences: {
