@@ -29,7 +29,7 @@ const registerHandler = (win) => {
   ipcMain.handle('get-versions-installed', (event) => getVersionsInstalled());
 
   // Launch Minecraft
-  ipcMain.handle('launch-minecraft', async (event, { options }) => await launchMinecraft(win, options));
+  ipcMain.handle('launch-minecraft', async (event, { v }) => await launchMinecraft(win, v));
 
 }
 

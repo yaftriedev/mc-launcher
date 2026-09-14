@@ -11,7 +11,7 @@ contextBridge.exposeInMainWorld('api', {
   getVersions: () => ipcRenderer.invoke('get-versions'),
   getVersionsInstalled: () => ipcRenderer.invoke('get-versions-installed'),
 
-  launchInstance: (options) => ipcRenderer.invoke('launch-minecraft', { options }),
+  launchInstance: (v) => ipcRenderer.invoke('launch-minecraft', { v }),
 
   log: (value) => ipcRenderer.invoke('log', { value }),
   onLog: (callback) => {

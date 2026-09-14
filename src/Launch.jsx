@@ -61,11 +61,9 @@ export default function Launch() {
   // Empezar el juego usando window.api.launchInstance y setDisabled(true) para desactivar el boton
   const startGame = async () => {  
     window.api.launchInstance({ 
-      name: "",
       versionId: version.id,
       versionType: version.type,
       url: version.url,
-      username: name
     });
 
     setDisabled(true);
