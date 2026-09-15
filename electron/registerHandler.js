@@ -1,4 +1,4 @@
-const { ipcMain, app } = require('electron');
+const { ipcMain } = require('electron');
 const { 
   storageManager, openFolder, openRepoGithub, 
   getVersions, getVersionsInstalled, launchMinecraft

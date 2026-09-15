@@ -5,7 +5,10 @@ const path = require('path');
 const os = require('os');
 
 // Ruta principal
-const appPath = path.join(process.cwd(), '.minecraft');
+const appPath = path.join(app.getPath('userData'), '.minecraft');
+// const appPath = path.join(process.cwd(), '.minecraft');
+
+// Otras Rutas
 const versionsPath = path.join(appPath, "versions");
 const dataPath = path.join(appPath, 'data.json');
 

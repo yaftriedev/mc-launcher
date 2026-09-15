@@ -18,16 +18,14 @@ class MinecraftCore {
    * @param {string} jsonUrl - URL desde donde se descarga el archivo JSON con la información de la versión del juego.
    * @param {string} username - Nombre del jugador que aparecerá dentro del juego.
    * @param {string} javaPath - Ruta del ejecutable de Java que se usará para lanzar el juego.
-   * @param {function(int)} sendProgress - Ejecuta una funcion con el porcentaje de progreso en descargas.
    * @param {function(string)} log - Ejecuta una funcion para mostrar log de errores y informacion.
    */
-  constructor({ gameDir, versionId, jsonUrl, username, javaPath, sendProgress, log }) {
+  constructor({ gameDir, versionId, jsonUrl, username, javaPath, log }) {
     this.gameDir = gameDir,
     this.versionId = versionId,
     this.jsonUrl = jsonUrl,
     this.username = username,
     this.javaPath = javaPath,
-    this.sendProgress = sendProgress,
     this.log = log,
     this.versionPath = path.join(gameDir, "versions", versionId)
     this.jsonVersionPath = path.join(this.versionPath, `${versionId}.json`)
