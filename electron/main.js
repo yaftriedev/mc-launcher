@@ -5,13 +5,13 @@ const path = require('path');
 const { registerHandler } = require('./registerHandler');
 const { initStorage } = require('./logic')
 
-initStorage();
-
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   // Flag para software rendering
   app.commandLine.appendSwitch('disable-gpu');
   app.commandLine.appendSwitch('disable-software-rasterizer');
   app.commandLine.appendSwitch('enable-features', 'UseOzonePlatform'); // opcional en Linux
+
+  await initStorage();
 
   win = new BrowserWindow({
     width: 1250,

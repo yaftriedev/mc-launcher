@@ -33,15 +33,13 @@
 
     "linux": {
       "target": [
-        "AppImage",
-        "deb",
-        "rpm"
+        "AppImage"
       ],
       "category": "Game"
     },
 
     "win": {
-      "target": "nsis"
+      "target": "portable"
     }
   },
   "devDependencies": {
