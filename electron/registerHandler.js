@@ -1,60 +1,36 @@
-const { ipcMain, app } = require('electron');
-const path = require('path');
-
-const { saveName, loadName, saveInstances, loadInstances } = require('./api/storage');
-const { LaunchMinecraft } = require('./api/launchMinecraft');
-const { fetchReleaseVersions, fetchForgeVersions, fetchVersionsAll } = require('./api/versionsMC');
-
-const { save, load, openFolder } = require('./util/file');
-const { dataFilePath } = require('./util/const');
+const { ipcMain } = require('electron');
+const { 
+  storageManager, openFolder, openRepoGithub, 
+  getVersions, getVersionsInstalled, launchMinecraft
+} = require('./logic')
 
 // Handler para IPC que expone las funciones de almacenamiento a la capa de renderizado
-function registerHandler(win) {  
-  
-  // save file
-  ipcMain.handle('save-data', async (event, { data }) =>  await save(data, dataFilePath))
-
-  // load file
-  ipcMain.handle('load-data', async (event) => await load(dataFilePath));
+const registerHandler = (win) => {  
 
   // save name
-  ipcMain.handle('save-name', async (event, { name }) => await saveName(name));
+  ipcMain.handle('save-name', async (event, { name }) => await storageManager.saveName(name));
 
   // load name
-  ipcMain.handle('load-name', async (event) => await loadName());
-
-  // save instances
-  ipcMain.handle('save-instances', async (event, { instances }) => await saveInstances(instances));
-
-  // load instances
-  ipcMain.handle('load-instances', async (event) => await loadInstances());
+  ipcMain.handle('load-name', async (event) => await storageManager.loadName());
 
   // Progress and MC closed events
-  ipcMain.handle('send-progress', (event, { value }) => event.sender.send('progress-update', value));
-  ipcMain.handle('send-mc-closed', (event) => event.sender.send('mc-closed'));
+  ipcMain.handle('log', (event, {value}) => event.sender.send('log-update', value));
 
-  // Get info
-  ipcMain.handle('get-info', () => {
-    return {
-      preloadPath: path.join(__dirname, 'preload.js'),
-      userDataPath: app.getPath('userData'),
-      version: app.getVersion(),
-      author: app.getName(),
-      repo: 'yaftriede/mc-launcher',
-    }
-  });
+  // Open github repo
+  ipcMain.handle('open-repo-github', (event) => openRepoGithub());
 
   // Open folder
-  ipcMain.handle('open-folder', (event, {name}) => openFolder(name));
+  ipcMain.handle('open-folder', (event) => openFolder());
 
   // Get versions
-  ipcMain.handle('get-versions-all', async (event) => fetchVersionsAll());
-  ipcMain.handle('get-versions-release', async (event) => fetchReleaseVersions());
-  ipcMain.handle('get-versions-forge', async (event) => fetchForgeVersions());
+  ipcMain.handle('get-versions', async (event) => await getVersions());
+
+  // Get versions installed
+  ipcMain.handle('get-versions-installed', (event) => getVersionsInstalled());
 
   // Launch Minecraft
-  ipcMain.handle('launch-minecraft', async (event, { options }) => await LaunchMinecraft(win, options));
+  ipcMain.handle('launch-minecraft', async (event, { v }) => await launchMinecraft(win, v));
 
 }
 
-module.exports = { registerHandler };
+module.exports = { registerHandler  };

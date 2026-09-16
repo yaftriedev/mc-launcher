@@ -3,17 +3,18 @@ const path = require('path');
 
 // Importar funciones de las APIs
 const { registerHandler } = require('./registerHandler');
-const { initStorage } = require('./api/storage')
+const { initStorage } = require('./logic')
 
-// Inicializar las APIs
-initStorage()
+app.whenReady().then(async () => {
+  // Flag para software rendering
+  app.commandLine.appendSwitch('disable-gpu');
+  app.commandLine.appendSwitch('disable-software-rasterizer');
+  app.commandLine.appendSwitch('enable-features', 'UseOzonePlatform'); // opcional en Linux
 
-let win = null;
+  await initStorage();
 
-// Crear la ventana principal de la aplicación
-function createWindow() {
   win = new BrowserWindow({
-    width: 1000,
+    width: 1250,
     height: 700,
     icon: path.join(__dirname, "../public/icon.png"),
     webPreferences: {
@@ -24,18 +25,10 @@ function createWindow() {
     }
   });
 
-  // Cargar tu React desde webpack-dev-server
-  win.loadURL('http://localhost:8080');
+  // Cargar tu React desde dist/index.html o webpack-dev-server
+  if (app.isPackaged) { win.loadFile( path.join(__dirname, "../renderer-dist/index.html") ); } 
+  else { win.loadURL("http://localhost:8080"); }
 
-}
-
-app.whenReady().then(() => {
-  // Flag para software rendering
-  app.commandLine.appendSwitch('disable-gpu');
-  app.commandLine.appendSwitch('disable-software-rasterizer');
-  app.commandLine.appendSwitch('enable-features', 'UseOzonePlatform'); // opcional en Linux
-
-  createWindow(); 
   registerHandler(win);
   
 });

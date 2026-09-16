@@ -1,5 +1,9 @@
 node_modules
 data.json
-.Minecraft/
+.minecraft/
 instances/
 app.log
+dist/
+squashfs-root
+release/
+renderer-dist
