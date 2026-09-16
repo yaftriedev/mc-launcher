@@ -3,15 +3,46 @@
   "version": "1.0.0",
   "description": "",
   "main": "electron/main.js",
-  "keywords": [],
-  "author": "yaftrie",
+  "author": {
+    "name": "yaftrie",
+    "email": "yaftrie@gmail.com"
+  },
+  "homepage": "https://github.com/yaftriedev/mc-launcher",
   "license": "ISC",
   "scripts": {
     "start-react": "webpack serve --open",
     "start-electron": "wait-on http://localhost:8080 && electron .",
     "start": "concurrently \"npm run start-react\" \"npm run start-electron\"",
-    "dist": "electron-builder",
+    "build-react": "webpack --mode production",
+    "dist": "npm run build-react && electron-builder",
     "electron": "electron ."
+  },
+  "build": {
+    "appId": "com.yaftrie.mc-launcher",
+    "productName": "Minecraft Launcher",
+
+    "directories": {
+      "output": "release"
+    },
+
+    "files": [
+      "electron/**/*",
+      "renderer-dist/**/*",
+      "package.json"
+    ],
+
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb",
+        "rpm"
+      ],
+      "category": "Game"
+    },
+
+    "win": {
+      "target": "nsis"
+    }
   },
   "devDependencies": {
     "@babel/core": "^7.29.0",
@@ -19,8 +50,8 @@
     "@babel/preset-react": "^7.28.5",
     "babel-loader": "^9.2.1",
     "concurrently": "^8.0.0",
-    "electron": "^26.0.0",
-    "electron-builder": "^24.0.0",
+    "electron": "^26.6.10",
+    "electron-builder": "^24.13.3",
     "html-webpack-plugin": "^5.6.6",
     "wait-on": "^7.0.0",
     "webpack": "^5.88.0",

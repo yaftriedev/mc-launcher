@@ -25,8 +25,9 @@ app.whenReady().then(() => {
     }
   });
 
-  // Cargar tu React desde webpack-dev-server
-  win.loadURL('http://localhost:8080');
+  // Cargar tu React desde dist/index.html o webpack-dev-server
+  if (app.isPackaged) { win.loadFile( path.join(__dirname, "../renderer-dist/index.html") ); } 
+  else { win.loadURL("http://localhost:8080"); }
 
   registerHandler(win);
   

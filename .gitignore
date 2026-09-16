@@ -3,3 +3,7 @@ data.json
 .minecraft/
 instances/
 app.log
+dist/
+squashfs-root
+release/
+renderer-dist
