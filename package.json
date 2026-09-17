@@ -1,6 +1,6 @@
 {
   "name": "mc-launcher",
-  "version": "0.1.1  9",
+  "version": "0.1.2",
   "description": "",
   "main": "electron/main.js",
   "author": {
