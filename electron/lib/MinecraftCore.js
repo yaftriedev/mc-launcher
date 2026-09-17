@@ -29,12 +29,27 @@ class MinecraftCore {
     this.log = log,
     this.versionPath = path.join(gameDir, "versions", versionId)
     this.jsonVersionPath = path.join(this.versionPath, `${versionId}.json`)
+    this.classifiersOS = this.getClassifiersOS()
   }
 
   // Funciones para mensajes unificados
   #msgDownloading(path) { return `Descargando archivo ${path}`}
   #msgDownloadComplete(path) {return `Archivo descargado en ${path}` }
   #msgDownloadProgress(i, total, path) { return `${i}/${total} Archivo descargado en ${path}` }
+
+  // Obtiene la etiqueta para identificar en el library.classifier
+  getClassifiersOS() {
+    switch (process.platform) {
+      case "win32":
+        return "natives-windows"; // windows
+      case "linux":
+        return "natives-linux"; // linux
+      case "darwin":
+        return "natives-macos"; // macOS
+      default:
+        return null;
+    }
+  }
 
   /**
    * Instala una versión del juego descargando los archivos necesarios y verificando su integridad.
@@ -82,7 +97,10 @@ class MinecraftCore {
    * @returns {Promise<void>} Una promesa que se resuelve cuando todas las librerías han sido procesadas.
    */
   async downloadLibraries(versionMeta) {
+    
+    // Descargar el .jar principal: lib.downloads.artifact
     for (const [index, lib] of versionMeta.libraries.entries()) {
+      
       if (!lib.downloads || !lib.downloads.artifact) continue;
 
       const { url, path: relPath, sha1 } = lib.downloads.artifact;
@@ -100,6 +118,30 @@ class MinecraftCore {
       }
 
       this.log( this.#msgDownloadProgress(index, versionMeta.libraries.length, savePath) )
+    
+    }
+
+    // Descagar el native .jar: classifiers.native-{os}
+    for (const [index, lib] of versionMeta.libraries.entries()) {
+
+      if (!lib.downloads.classifiers?.[this.classifiersOS]) continue;
+
+      const { url, path: relPath, sha1 } = lib.downloads.classifiers[this.classifiersOS];
+      const savePath = path.join(this.gameDir, "libraries", relPath);
+
+      if (fs.existsSync(savePath)) continue
+
+      await fs.promises.mkdir(path.dirname(savePath), { recursive: true });
+      await downloadFile(url, savePath);
+
+      if (!verifyChecksum(savePath, sha1)) {
+        this.log("Error, los hashes no coinciden: " + savePath)
+        if (fs.existsSync(savePath)) fs.unlinkSync(savePath);
+        return false;
+      }
+
+      this.log( "[Native] " + this.#msgDownloadProgress(index, versionMeta.libraries.length, savePath) )
+
     }
 
     return true;

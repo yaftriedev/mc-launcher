@@ -124,14 +124,7 @@ class MinecraftRelease extends MinecraftCore {
 
       // Cierre
       proc.on("close", (code, signal) => {
-        this.log(`[MC CLOSE] Código: ${code}`)
-        this.log(`[MC CLOSE] Signal: ${signal}`)
-        this.log("MC Closed")
-      })
-
-      proc.on("exit", (code, signal) => {
-        this.log(`[MC EXIT] Código: ${code}`)
-        this.log(`[MC EXIT] Signal: ${signal}`)
+        this.log(`[MC CLOSE] Código: ${code}, Signal: ${signal}`)
         this.log("MC Closed")
       })
 
