@@ -42,12 +42,12 @@ const getVersionsInstalled = () => fs.readdirSync(versionsPath, { withFileTypes:
   .map(entry => entry.name);
 
 const launchMinecraft = async (win, version) => {
-  let minecraftConfig = {
+  const minecraftConfig = {
     gameDir: appPath,
     versionId: version.versionId,
     versionType: version.versionType,
     jsonUrl: version.url,
-    username: storageManager.loadName(),
+    username: await storageManager.loadName(),
     javaPath: await getJavaPath(),
     log: (d) => win.webContents.send('log-update', d.toString()),
   }
