@@ -44,8 +44,9 @@ export default function Launch() {
   useEffect(() => {
     const removeListener = window.api.onLog((msg) => {
       if (msg === "MC Closed") setDisabled(false);
+      const limitLogs = 1000
 
-      if (showLogs) setLog(prev => [msg, ...prev]);
+      if (showLogs) setLog(prev => [msg, ...prev].slice(0, limitLogs));
     });
 
     return removeListener;

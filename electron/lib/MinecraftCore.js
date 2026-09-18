@@ -32,11 +32,6 @@ class MinecraftCore {
     this.classifiersOS = this.getClassifiersOS()
   }
 
-  // Funciones para mensajes unificados
-  #msgDownloading(path) { return `Descargando archivo ${path}`}
-  #msgDownloadComplete(path) {return `Archivo descargado en ${path}` }
-  #msgDownloadProgress(i, total, path) { return `${i}/${total} Archivo descargado en ${path}` }
-
   // Obtiene la etiqueta para identificar en el library.classifier
   getClassifiersOS() {
     switch (process.platform) {
@@ -62,9 +57,7 @@ class MinecraftCore {
     // Crear carpeta y descargar fichero
     if (!fs.existsSync(this.jsonVersionPath)) {
       fs.mkdirSync(this.versionPath, { recursive: true });
-      this.log( this.#msgDownloading(this.jsonVersionPath) )
-      await downloadFile(this.jsonUrl, this.jsonVersionPath)
-      this.log( this.#msgDownloadComplete(this.jsonVersionPath) )
+      await downloadFile(this.jsonUrl, this.jsonVersionPath, (d) => this.log(d))
     }
     
     // Obtener versionMeta
@@ -75,13 +68,11 @@ class MinecraftCore {
     const clientJar = versionMeta.downloads.client
     
     if (!fs.existsSync(clientJarPath)) {
-      this.log( this.#msgDownloading(clientJarPath) )
-      await downloadFile(clientJar.url, clientJarPath)
-      this.log( this.#msgDownloadComplete(clientJarPath) )
+      await downloadFile(clientJar.url, clientJarPath, (d) => this.log(d))
     }
     
     // Verificar el sha1 de el client.jar descargado y el original
-    if (!verifyChecksum(clientJarPath, clientJar.sha1)) {
+    if ( !(await verifyChecksum(clientJarPath, clientJar.sha1)) ) {
       this.log("Error, los hashes no coinciden: " + clientJarPath)
       if (fs.existsSync(clientJarPath)) fs.unlinkSync(clientJarPath);
       return false;
@@ -109,15 +100,15 @@ class MinecraftCore {
       if (fs.existsSync(savePath)) continue
 
       await fs.promises.mkdir(path.dirname(savePath), { recursive: true });
-      await downloadFile(url, savePath);
+      await downloadFile(url, savePath, (d) => this.log(d));
 
-      if (!verifyChecksum(savePath, sha1)) {
+      if (!( await verifyChecksum(savePath, sha1))) {
         this.log("Error, los hashes no coinciden: " + savePath)
         if (fs.existsSync(savePath)) fs.unlinkSync(savePath);
         return false;
       }
 
-      this.log( this.#msgDownloadProgress(index, versionMeta.libraries.length, savePath) )
+      this.log( `[PROGRESO] ${index}/${versionMeta.libraries.length}`)
     
     }
 
@@ -132,15 +123,15 @@ class MinecraftCore {
       if (fs.existsSync(savePath)) continue
 
       await fs.promises.mkdir(path.dirname(savePath), { recursive: true });
-      await downloadFile(url, savePath);
+      await downloadFile(url, savePath, (d) => this.log(d));
 
-      if (!verifyChecksum(savePath, sha1)) {
+      if (!( await verifyChecksum(savePath, sha1))) {
         this.log("Error, los hashes no coinciden: " + savePath)
         if (fs.existsSync(savePath)) fs.unlinkSync(savePath);
         return false;
       }
 
-      this.log( "[Native] " + this.#msgDownloadProgress(index, versionMeta.libraries.length, savePath) )
+      this.log( `[PROGRESO] ${index}/${versionMeta.libraries.length}`)
 
     }
 
@@ -167,7 +158,7 @@ class MinecraftCore {
 
     if (!fs.existsSync(assetsJsonPath)) {
       await fs.promises.mkdir(path.dirname(assetsJsonPath), { recursive: true });
-      await downloadFile(assetsUrl, assetsJsonPath);
+      await downloadFile(assetsUrl, assetsJsonPath, (d) => this.log(d));
     } 
     
     // Obtener lista de objetos con relPath y hash
@@ -182,15 +173,15 @@ class MinecraftCore {
       if (fs.existsSync(savePath)) continue
 
       await fs.promises.mkdir(path.dirname(savePath), { recursive: true });
-      await downloadFile(url, savePath);
+      await downloadFile(url, savePath, (d) => this.log(d));
 
-      if (!verifyChecksum(savePath, hash)) {
+      if (!( await verifyChecksum(savePath, hash))) {
         this.log("Error, los hashes no coinciden: " + savePath)
         if (fs.existsSync(savePath)) fs.unlinkSync(savePath);
         return false;
       }
 
-      this.log( this.#msgDownloadProgress(index, listAssets.length, savePath) )
+      this.log( `[PROGRESO] ${index}/${listAssets.length}`)
     }
   }
 
